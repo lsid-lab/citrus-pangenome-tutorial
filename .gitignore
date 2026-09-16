@@ -1,0 +1,91 @@
+# =========================================================
+# Data files - never commit large genomic data
+# =========================================================
+data/
+*.fa
+*.fa.gz
+*.fasta
+*.fasta.gz
+*.fai
+*.gzi
+*.bam
+*.bam.bai
+*.vcf
+*.vcf.gz
+*.vcf.gz.tbi
+*.gfa
+*.og
+*.lay
+*.paf
+*.msh
+
+# But keep example/template files if any
+!tables/samplesheet.tsv
+!docs/**/*.fa.example
+
+# =========================================================
+# Pipeline outputs
+# =========================================================
+03_pangenome/
+qc/
+logs/
+work/
+
+# =========================================================
+# Singularity / Docker images
+# =========================================================
+*.sif
+*.img
+*.simg
+
+# =========================================================
+# Python
+# =========================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+ENV/
+
+# =========================================================
+# Editor / IDE
+# =========================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# =========================================================
+# Miscellaneous
+# =========================================================
+*.log
+*.tmp
+.cache/
+_tmp/
+scratch/
