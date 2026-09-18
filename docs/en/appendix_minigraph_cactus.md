@@ -2,11 +2,11 @@
 
 > **This appendix is untested.** It has not been run in this tutorial's environment. The commands adapt the procedure from the Cactus documentation to this tutorial's data, and **have not been verified to work as written**. Check the [official documentation](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/pangenome.md) for the current syntax before running anything.
 
-As §5.3 argues, **Minigraph-Cactus (MC) is in several respects the better fit for this dataset**. This appendix sketches how the same six haploids would go through MC.
+This is the procedure for actually obtaining the Minigraph-Cactus (MC) benefits listed in §5.3, running the same six haploids through MC.
 
 ---
 
-## A.1 Why MC is worth trying
+## A.1 What MC gives you
 
 Restating §5.3:
 

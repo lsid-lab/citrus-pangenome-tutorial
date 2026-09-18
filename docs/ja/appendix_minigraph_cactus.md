@@ -2,11 +2,11 @@
 
 > **この付録は未検証です。** 本教材の環境では実行していません。コマンドは Cactus 公式ドキュメントの手順を本教材のデータに当てはめたもので、**そのまま動くことを確認していません**。実行する際は必ず[公式ドキュメント](https://github.com/ComparativeGenomicsToolkit/cactus/blob/master/doc/pangenome.md)で最新の書式を確認してください。
 
-§5.3 で述べたとおり、**このデータセットには Minigraph-Cactus (MC) のほうが適している面があります**。ここでは、同じ 6 haploid を MC で扱う場合の流れを示します。
+§5.3 で挙げた Minigraph-Cactus (MC) のメリットを実際に得たい場合の手順です。同じ 6 haploid を MC で扱う流れを示します。
 
 ---
 
-## A.1 なぜ MC を試す価値があるか
+## A.1 MC で得られるもの
 
 §5.3 の再掲です。
 

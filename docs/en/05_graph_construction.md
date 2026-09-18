@@ -3,7 +3,8 @@
 ## Learning objectives
 
 - Compare the major pangenome construction tools
-- Understand why we choose **PGGB** here, and **where Minigraph-Cactus fits better**
+- Understand why we choose **PGGB** here
+- Learn the three meanings of "reference sequence" and which of them PGGB needs
 - Learn PGGB's internal stages and key parameters, and **how to choose parameters with no prior knowledge of your species**
 - Choose an execution environment and run PGGB
 - Understand **impg** and the idea of separating alignment from graph induction
@@ -50,7 +51,7 @@ There are three practical choices today.
 
 |Aspect|Minigraph|Minigraph-Cactus|PGGB|
 |---|---|---|---|
-|Reference dependence|Strong|Moderate|**None**|
+|Reference sequence required|**Yes**|**Yes**|**No**|
 |SVs|Good|Excellent|Excellent|
 |SNPs|No|Yes|Yes|
 |Speed|Fastest|Moderate|Slowest|
@@ -59,63 +60,79 @@ There are three practical choices today.
 
 ---
 
-## 5.2 Choosing one coordinate path
+## 5.2 Three meanings of "reference sequence", and which one PGGB needs
 
-When PGGB builds a graph it gives no sequence a privileged role as the skeleton (reference-free). **The structure of the graph does not depend on which sequence you call "the reference".**
+In pangenome discussions the word "reference" is used in **three different senses**. Conflating them makes conversations go past each other, so distinguish them first.
 
-Producing a **VCF**, however, requires a coordinate system. To write "position 1,234 of chr09 is A→G" you have to fix one path to count those 1,234 bases along. In PGGB that is what `-V` selects.
+|Sense|What it is|
+|---|---|
+|**(1) Structural backbone**|The sequence forming the skeleton of the graph. Sequence absent from it is attached as branches|
+|**(2) Coordinate anchor**|The coordinate system used to say "position 1,234 of chr09". Needed for VCF and visualization|
+|**(3) Comparative baseline**|The baseline for "A differs from B by X". A matter of how claims are framed|
 
-This tutorial uses **`CUN#1` (CUNphKu, Kunenbo-derived)**. Given `-V CUN#1`, pggb internally calls `vg deconstruct -P CUN#1#` and writes the VCF in CUN#1 coordinates.
+Tools differ in whether they require (1). Minigraph and Minigraph-Cactus **require it**, and the reference chosen shapes the graph itself.
 
-The reasons are practical:
+### In PGGB
+
+**PGGB has no (1).** All sequences are treated symmetrically, so **the structure of the graph does not depend on which sequence you call "the reference".**
+
+**(2), however, PGGB still needs one of.** To write "position 1,234 of chr09 is A→G" in a VCF, you must fix one path to count those 1,234 bases along. In PGGB that is what `-V` selects.
+
+This tutorial uses **`CUN#1` (CUNphKu, Kunenbo-derived)**. Given `-V CUN#1`, pggb internally calls `vg deconstruct -P CUN#1#` and writes the VCF in CUN#1 coordinates. The reasons are practical:
 
 - **It sits at the centre of the pedigree**: Satsuma is the F1, so it compares naturally against either parent
 - **Its parent of origin is known**: trio phasing identifies `CUN#1` as Kunenbo (CKU)-derived (§2.5)
 - **Chromosome-scale with little missing sequence**
 
-Choosing `CUN#2` instead would give the same graph, only different VCF coordinates and REF column. Chapters 6 and 7 are all written against `CUN#1`, so if you change it, change both `-V` and `vg deconstruct -P`.
+Choosing `CUN#2` instead gives **the same graph**, only different VCF coordinates and REF column. That is what "having no (1)" means in practice. Chapters 6 and 7 are all written against `CUN#1`, so if you change it, change both `-V` and `vg deconstruct -P`.
 
-## 5.3 Why PGGB — and why you might not
+Sense (3) is about how an argument is framed rather than about the analysis, and it comes back when we interpret results in Chapter 7.
 
-This tutorial uses **PGGB**, but **Minigraph-Cactus (MC) is arguably the better fit for this dataset**. That case first.
+## 5.3 Why we use PGGB, and what MC would give you
 
-### Where MC is the better tool here
+This tutorial uses **PGGB**.
 
-**1. The coordinate system is fixed from the start**
-
-MC **requires** a reference genome, and that reference is never clipped, never cyclic, and **directly defines the VCF coordinate system and the chromosome decomposition**. The question this tutorial asks — which parent each Satsuma haplotype descends from, along the chromosome — is more natural when one coordinate system is fixed up front. With PGGB we pick a coordinate path after the fact, as §5.2 describes.
-
-**2. Read-mapping artifacts come out of the box**
-
-Alongside GFA and VCF, MC produces **GBZ and the `.dist` / `.min` / `.hapl` indexes, ready for read mapping with vg Giraffe**. The v1/v2 comparison in §7.6 calibrated against an independent RAD-Seq F1 population by mapping reads onto the graph — precisely the use case MC's output is designed for.
-
-**3. Softmasked input does not matter**
-
-MC does not require input softmasking. Here, r2.0 arrives repeat-masked, which is why `pg01_prepare_input.sh` gained an upper-casing step (§7.6). With MC that handling is unnecessary.
-
-**4. It is faster**
-
-It is designed for closely related samples of the same species, and at this scale it finishes sooner than PGGB.
-
-### Why this tutorial nonetheless uses PGGB
+### Reasons for PGGB
 
 **1. All haploids are treated symmetrically**
 
-Reference-free construction matches this tutorial's framing of looking at three cultivars as equals. Picking one as the backbone makes "sequence present in the backbone" and "sequence absent from it" asymmetric.
+Reference-free construction matches this tutorial's framing of looking at three cultivars as equals. Picking one as the backbone (sense (1) in §5.2) makes "sequence present in the backbone" and "sequence absent from it" asymmetric.
 
 **2. The internal stages can be inspected separately**
 
-wfmash → seqwish → smoothxg are cleanly separated, and you can look at each intermediate (the PAF, the freshly induced GFA). **Being able to follow what is happening matters for a tutorial** — and it is why a problem like `-B` in §5.5.3 is noticeable at all.
+wfmash → seqwish → smoothxg are cleanly separated, and you can look at each intermediate (the PAF, the freshly induced GFA). **Being able to follow what is happening** matters for a tutorial — and it is why a problem like `-B` in §5.5.3 is noticeable at all.
 
-**3. The numbers in this tutorial come from PGGB**
+**3. Six haploids is computationally realistic**
 
-Everything quoted here, the v1/v2 comparison included, was produced with PGGB.
+PGGB is the slowest of the three, but six haploids at 30-40 Mb per chromosome take 30-60 minutes on 32 CPUs. That runs in a student environment.
 
-**None of this makes PGGB the better tool.** When choosing for your own work, **work backwards from the artifact you need**: MC if you want a VCF in reference coordinates and indexes for read mapping, PGGB if you want every sample treated symmetrically, minigraph if you only want an overview of large SVs.
+### What Minigraph-Cactus would give you
+
+Running the same data through MC instead buys the following. **For some purposes it is the better choice.**
+
+**1. The coordinate system is fixed from the start**
+
+MC **requires** a reference genome, and that reference is never clipped or cyclic and **directly defines the VCF coordinate system and the chromosome decomposition** (serving as both (1) and (2) in §5.2). If you want to work in one fixed coordinate system throughout, that is more direct than selecting one afterwards with `-V`.
+
+**2. Read-mapping artifacts come out of the box**
+
+Alongside GFA and VCF you get **GBZ and the `.dist` / `.min` / `.hapl` indexes, ready for read mapping with vg Giraffe**. That suits work like the v1/v2 comparison in §7.6, which validates against independent read data mapped onto the graph.
+
+**3. Softmasked input does not matter**
+
+MC does not require input softmasking. Here, r2.0 arrives repeat-masked, which is why `pg01_prepare_input.sh` gained an upper-casing step (§7.6); with MC that handling is unnecessary.
+
+**4. It is faster**
+
+Designed for closely related samples of the same species, it finishes sooner than PGGB at this scale.
+
+**In practice, choose by working backwards from the artifact you need**: MC if you want a VCF in reference coordinates and indexes for read mapping, PGGB if you want every sample treated symmetrically, minigraph if you only want an overview of large SVs.
 
 > The procedure for running the same six haploids through MC is in [Appendix: the same data with Minigraph-Cactus](appendix_minigraph_cactus.md). MC emits GFA v1.1 (`W` lines), so the `vg convert` downgrade from §1.2.2 is genuinely needed there.
 
 Note also that **even with PGGB, current practice is not "PGGB alone"**. Pairing it with **impg**, which separates alignment from graph induction, is the current approach; see §5.9.
+
+---
 
 ## 5.4 PGGB internal stages
 
@@ -524,7 +541,8 @@ At six haploids and one chromosome, PGGB alone finishes in 30-60 minutes, and a 
 ## Chapter summary
 
 - Three pangenome tools: Minigraph, Minigraph-Cactus (MC), PGGB
-- **MC is arguably the better fit for this dataset** (fixed coordinate system, Giraffe-ready indexes, no softmask handling). PGGB is chosen for pedagogical reasons
+- "Reference" has three senses — **(1) backbone / (2) coordinate anchor / (3) comparative baseline**. **PGGB requires only (2)**
+- MC would give you a fixed reference coordinate system, Giraffe-ready indexes and no softmask handling. **Choose by working backwards from the artifact you need**
 - PGGB's construction is reference-free; **one coordinate path is chosen only for the VCF** (`-V CUN#1`)
 - PGGB is a 3-stage pipeline: wfmash → seqwish → smoothxg
 - **Parameters can be derived from your own data rather than copied from a paper** — measure identity with `mash triangle` or `wfmash -m` for `-p`, sweep one chromosome for `-s`, and treat `-n` as a check on pggb's automatic count
