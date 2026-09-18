@@ -13,7 +13,12 @@
 
 The first step in reproducing a paper is to read the **"Data availability" section**.
 
-The relevant excerpt from Isobe et al. (2023) *bioRxiv*:
+The data used in this tutorial comes from:
+
+> Isobe S, et al. (2023). Haploid-resolved and chromosome-scale genome assembly in *Citrus unshiu* and its parental species, *C. nobilis* and *C. kinokuni*. *bioRxiv* 2023.06.02.543356.
+> <https://www.biorxiv.org/content/10.1101/2023.06.02.543356v1>
+
+The relevant excerpt from its "Data availability" section:
 
 > The sequence reads are available from the DNA Data Bank of Japan (DDBJ) Sequence Read Archive (DRA) under the BioProject number **PRJDB15866**. The assembled scaffold sequences, gene sequences, and annotation files are available at **Plant GARDEN**.
 
@@ -87,18 +92,54 @@ Citrus data paths:
 - Kishu: `https://plantgarden.jp/en/download/Citrus_kinokuni/`
 - Kunenbo: `https://plantgarden.jp/en/download/Citrus_nobilis/`
 
-### 3.4.2 File naming convention
+### 3.4.2 Reading the Assembly IDs (Gxxx)
 
-Plant GARDEN publishes **multiple assembly versions** for the same species in parallel. For Satsuma:
+Plant GARDEN publishes **multiple assembly versions** for the same species in parallel, each under an **Assembly ID** of the form `G001`, `G002`, ….
+
+For each of the three cultivars, Isobe et al. (2023) deposited the **same set of three**, numbered in this order:
+
+1. **unphased** — the diploid collapsed into a single set
+2. **hap1** — phased haplotype 1
+3. **hap2** — phased haplotype 2
+
+**Satsuma (CUN, taxon `t55188`)**
 
 | Assembly ID | File | Content |
 |---|---|---|
-| t55188.**G001** | `C_unshiu_v1.0_scaffolds.fa.gz` | Kawahara 2020 hybrid (older, unphased) |
-| t55188.**G002** | `CUNuph_r1.0.fasta.gz` | Isobe 2023 phased (integrated) |
-| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **CUN hap1 (Kishu-derived)** |
-| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **CUN hap2 (Kunenbo-derived)** |
+| t55188.**G001** | `C_unshiu_v1.0_scaffolds.fa.gz` | A **different study** — Kawahara et al. (2020), older and unphased |
+| t55188.**G002** | `CUNuph_r1.0.fasta.gz` | Isobe 2023 **unphased** (`uph` = **u**n**ph**ased) |
+| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **hap1** (`ph` = **ph**ased, `Ki` = **Ki**shu-derived) ← used here |
+| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **hap2** (`Ku` = **Ku**nenbo-derived) ← used here |
 
-**We use G003 and G004** (and corresponding phased assemblies for Kishu and Kunenbo) in this tutorial.
+**Kishu (CKI, `t408488`) and Kunenbo (CKU, `t481549`)** — these only go up to `G003`.
+
+| Assembly ID | Content | File |
+|---|---|---|
+| **G001** | **unphased** (not used here) | — |
+| **G002** | **hap1** ← used here | `CKIhap1_r1.0.pmol.fasta.gz` / `CKUhap1_r1.0.pmol.fasta.gz` |
+| **G003** | **hap2** ← used here | `CKIhap2_r1.0.pmol.fasta.gz` / `CKUhap2_r1.0.pmol.fasta.gz` |
+
+> **Why Satsuma's numbering is offset by one**: an assembly from Kawahara et al. (2020) was already registered as `G001` for Satsuma before Isobe 2023. So "Isobe 2023's unphased / hap1 / hap2" maps to **G002 / G003 / G004** for Satsuma but **G001 / G002 / G003** for the two parents. Rather than memorizing the numbers, remember the **unphased → hap1 → hap2 ordering**.
+
+**The six files this tutorial uses are the hap1 and hap2 of each cultivar** (G003/G004 for Satsuma, G002/G003 for Kishu and Kunenbo).
+
+The unphased assemblies (Satsuma G002, and G001 for the parents) are not used: **with both haplotypes collapsed into one sequence, the differences between haplotypes cannot be represented in the graph.** Conversely, it is precisely because phased assemblies exist for all three cultivars that building a pangenome here is worthwhile.
+
+### 3.4.3 What does `pmol` mean?
+
+The **`pmol`** that recurs in these filenames is short for **pseudomolecule**.
+
+It is called "pseudo" because it is **not a single molecule read end-to-end across a whole chromosome**. It is built like this:
+
+1. Sequencing and assembly produce many contigs / scaffolds
+2. Hi-C data, linkage maps, or similar are used to **order and orient them along the chromosome**
+3. The ordered pieces are joined (padding gaps with `N`) into **one sequence representing one chromosome**
+
+So a `pmol` is a sequence **constructed** to represent a chromosome. Treating it as a chromosome sequence is fine in practice, but keep in mind that it is **not an observed single molecule** — gaps (runs of `N`) may remain, and the order or orientation of some pieces may be wrong. That is part of why Chapter 4's QC checks the fraction of `N`.
+
+The convention is used consistently across Plant GARDEN / Kazusa DNA Research Institute releases: tomato's `SLM_r2.0.pmol`, pepper's `CAN_r1.2.pmol`, hydrangea's `HMA_r1.2.pmol`, and so on. A useful rule of thumb when browsing other Plant GARDEN datasets: **pick the file with `pmol` in its name and you get chromosome-level sequence.**
+
+> Note that Satsuma's hap2 is the one exception here: it is named **`CUNphKu_r1.0.ch1-9.fasta.gz`** (chromosomes 1-9 only) rather than `.pmol`. Since this tutorial builds graphs per chromosome, either naming works fine.
 
 ---
 
@@ -107,7 +148,7 @@ Plant GARDEN publishes **multiple assembly versions** for the same species in pa
 This tutorial is designed to be **cloned from GitHub**:
 
 ```bash
-git clone https://github.com/<user>/citrus-pangenome-tutorial.git
+git clone https://github.com/lsid-lab/citrus-pangenome-tutorial.git
 cd citrus-pangenome-tutorial
 ```
 
@@ -162,10 +203,9 @@ You can download each file through the Plant GARDEN web interface. Files are ~10
 
 ### 3.6.2 Batch download script
 
-Use `scripts/download_plantgarden.sh`:
+Use `scripts/download_plantgarden.sh` (continuing from the repository root you `cd`'d into in §3.5):
 
 ```bash
-cd citrus-pangenome-tutorial
 bash scripts/download_plantgarden.sh data/
 ```
 
@@ -220,7 +260,7 @@ Once downloads complete, verify:
 
 ```bash
 # File sizes and presence
-ls -la data/*/*.fa.gz
+ls -la data/*/*.fasta.gz
 
 # Peek at each FASTA
 zcat data/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
@@ -243,6 +283,9 @@ zcat data/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
 - The paper's "Data availability" section is your first clue
 - Use BioProject numbers for **raw reads on DDBJ**, Plant GARDEN for **assemblies**
 - Plant GARDEN naming pattern: `C{species}{ph or hap}{Ki/Ku or 1/2}`
+- **Assembly IDs (Gxxx) run unphased → hap1 → hap2**; Satsuma is offset by one because an older assembly occupies `G001`
+- **`pmol` = pseudomolecule** — a sequence *constructed* to represent a chromosome by ordering contigs along it, not a molecule read end-to-end
+- Only the **phased (hap1/hap2)** assemblies go into the pangenome; unphased ones cannot represent differences between haplotypes
 - One samplesheet (TSV) manages 3 cultivars × 2 haps = 6 haploids
 
 The next chapter walks through **quality control** on the downloaded assemblies.
@@ -253,7 +296,8 @@ The next chapter walks through **quality control** on the downloaded assemblies.
 - **DDBJ**: https://www.ddbj.nig.ac.jp/
 - **NCBI**: https://www.ncbi.nlm.nih.gov/
 - **INSDC**: http://www.insdc.org/
-- Isobe S, et al. (2023). bioRxiv 2023.06.02.543356.
+- Isobe S, et al. (2023). Haploid-resolved and chromosome-scale genome assembly in *Citrus unshiu* and its parental species, *C. nobilis* and *C. kinokuni*. *bioRxiv* 2023.06.02.543356. <https://www.biorxiv.org/content/10.1101/2023.06.02.543356v1>
+- Kawahara Y, et al. (2020). Mikan Genome Database (MiGD): integrated database of genome annotation, genomic diversity, and CAPS marker information for mandarin molecular breeding. *Breed Sci* 70(2). (source of Satsuma's `G001` assembly)
 
 ---
 
