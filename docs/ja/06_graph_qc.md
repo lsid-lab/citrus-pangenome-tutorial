@@ -126,12 +126,12 @@ seqkit fx2tab -nl chr09_paths.fa
 
 出力例:
 ```
-satsuma#1#chr09    45,179,797
-satsuma#2#chr09    29,817,104
-kishu#1#chr09      28,530,969
-kishu#2#chr09      31,864,882
-kunenbo#1#chr09    30,157,514
-kunenbo#2#chr09    30,337,761
+CUN#1#chr09    45,179,797
+CUN#2#chr09    29,817,104
+CKI#1#chr09      28,530,969
+CKI#2#chr09      31,864,882
+CKU#1#chr09    30,157,514
+CKU#2#chr09    30,337,761
 ```
 
 これを**入力 FASTA の各配列長**と比較します。
@@ -166,11 +166,11 @@ max_diff が 0.000% なら**入力配列は完全に graph に保存**されて�
 
 ### 6.4.1 温州みかんの pedigree で graph を "検証"
 
-3 品種の系統関係が既知(STS = KSH × KNN)なので、graph 上の path 間類似度が pedigree と整合するかを確認できます。
+3 品種の系統関係が既知(CUN = CKI × CKU)なので、graph 上の path 間類似度が pedigree と整合するかを確認できます。
 
 期待:
-- STS_hap1 (Kishu 由来) と KSH の hap のどちらか → 高い類似度
-- STS_hap2 (Kunenbo 由来) と KNN の hap のどちらか → 高い類似度
+- CUN_hap1 (Kishu 由来) と CKI の hap のどちらか → 高い類似度
+- CUN_hap2 (Kunenbo 由来) と CKU の hap のどちらか → 高い類似度
 
 ### 6.4.2 odgi similarity の実行
 
@@ -188,21 +188,23 @@ group.a  group.b  a.length  b.length  intersection  jaccard  cosine  dice  ident
 ### 6.4.3 AVG-based vs MAX-based の検定
 
 **平均(AVG)**で見ると誤解しやすい:
-- STS_hap1 vs KSH の "平均" 類似度は、KSH_hap1 と KSH_hap2 の両方との平均
-- でも F1 は片親から**片方だけ**受け継ぐので、真の類似度は片方に偏る
+- CUN_hap1 vs CKI の "平均" 類似度は、CKI_hap1 と CKI_hap2 の両方との平均
+- CUN_hap1 は組み換えによる CKI_hap1 / CKI_hap2 の**モザイク**なので(§2.4)、区間ごとに「より近い方」が入れ替わる。両方を平均してしまうと、その構造がならされて **CKU 側との差が縮み、pedigree のシグナルが埋もれる**
 
 **最大(MAX)**で見るのが本質的:
-- MAX(STS_hap1 vs KSH_hap1, STS_hap1 vs KSH_hap2) = 「最も近い KSH hap との類似度」
-- これが pedigree の "donor haplotype" に対応する
+- MAX(CUN_hap1 vs CKI_hap1, CUN_hap1 vs CKI_hap2) = 「より近い方の CKI hap との類似度」
+- 組み換えがあっても CUN_hap1 の全区間は CKI の 2 本のいずれかに由来するので、この MAX は CKU 側の MAX より必ず高くなる
+
+> **注意**: これは「**donor が親 CKI である**」ことの検定であって、「donor hap は CKI_hap1 である」を決める検定ではありません。染色体全体の Jaccard 1 個で親のどちらのハプロタイプかを特定することはできません(§2.4)。区間ごとの由来を追うには §7.5.2 の窓ごとの解析が必要です。
 
 `pg03_qc_graph.sh` は両方を計算します:
 
 ```
-STS_hap1 の各parent hap との類似度:
-  kishu#1#chr09    Jaccard = 0.62  ← donor 候補
-  kishu#2#chr09    Jaccard = 0.35
-  kunenbo#1#chr09  Jaccard = 0.42
-  kunenbo#2#chr09  Jaccard = 0.48
+CUN_hap1 の各parent hap との類似度:
+  CKI#1#chr09    Jaccard = 0.62  ← より近い CKI hap
+  CKI#2#chr09    Jaccard = 0.35
+  CKU#1#chr09  Jaccard = 0.42
+  CKU#2#chr09  Jaccard = 0.48
 
 --- Pedigree検定 ---
   AVG-based: NO   (haplotype leakage で撹乱)
@@ -211,11 +213,11 @@ STS_hap1 の各parent hap との類似度:
 
 ### 6.4.4 Haplotype leakage の影響
 
-第4章で見た **haplotype leakage**(STS の 2 hap のサイズが親系統より大きい)が、Jaccard 類似度に影響します。
+第4章で見た **haplotype leakage**(CUN の 2 hap のサイズが親系統より大きい)が、Jaccard 類似度に影響します。
 
 Jaccard = intersection / union の性質上、**片方の path が長いほど union が大きくなり、Jaccard が下がる**。
 
-STS_hap1 が 45 Mb (期待の 30 Mb の 1.5 倍)で、他の hap が 30 Mb だと:
+CUN_hap1 が 45 Mb (期待の 30 Mb の 1.5 倍)で、他の hap が 30 Mb だと:
 - intersection = 25 Mb (共有部分)
 - union = 45 + 30 - 25 = 50 Mb
 - Jaccard = 0.50
@@ -225,8 +227,8 @@ STS_hap1 が 45 Mb (期待の 30 Mb の 1.5 倍)で、他の hap が 30 Mb だ�
 ### 6.4.5 判定基準
 
 MAX-based で:
-- STS_hap1 が KSH のどちらかと最高類似度 = ✅
-- STS_hap2 が KNN のどちらかと最高類似度 = ✅
+- CUN_hap1 が CKI のどちらかと最高類似度 = ✅
+- CUN_hap2 が CKU のどちらかと最高類似度 = ✅
 
 両方満たせば **pedigree consistent**。片方でも満たさない場合、hap1/hap2 のラベル入れ替わりや、trio phasing 失敗を疑います。
 
@@ -237,10 +239,10 @@ MAX-based で:
 ### 6.5.1 VCF の生成
 
 ```bash
-vg deconstruct -P satsuma#1 -H '#' -a -e -t 8 chr09.smooth.final.gfa > chr09.vcf
+vg deconstruct -P CUN#1 -H '#' -a -e -t 8 chr09.smooth.final.gfa > chr09.vcf
 ```
 
-- `-P satsuma#1`: 座標基準(reference path)
+- `-P CUN#1`: 座標基準(reference path)
 - `-H '#'`: PanSN separator
 - `-a`: nested variants を含める
 - `-e`: path traversal ベースで call

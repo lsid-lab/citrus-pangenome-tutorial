@@ -84,14 +84,14 @@ Graph ができた後、「〜番染色体の〜番目の塩基」と語ると�
 本教材が採用する PGGB は **reference-free** なので:
 
 - **① 構造的 backbone は不要**
-- **② 座標アンカー**として、**STS_hap1 (CUNphKi)** を選択(理由は後述)
+- **② 座標アンカー**として、**CUN_hap1 (CUNphKi)** を選択(理由は後述)
 - **③ 比較基準**は文脈依存
 
 **「参照配列を選ぶ」と言うとき、我々が本当に選んでいるのは ② の座標アンカー**であって、graph の構造を決める骨格ではありません。この区別を意識してください。
 
-### 座標アンカーとして STS_hap1 を選ぶ理由
+### 座標アンカーとして CUN_hap1 を選ぶ理由
 
-1. **STS が pedigree の中心**: F1(KSH × KNN) なので、両親を graph 上でつなぐ位置
+1. **CUN が pedigree の中心**: F1(CKI × CKU) なので、両親を graph 上でつなぐ位置
 2. **hap1 は Kishu 由来と特定済み**: trio phasing の情報で解釈が明確
 3. **Isobe 2023 アセンブリの中で最新・高品質**
 
@@ -161,7 +161,7 @@ PGGB は 3 段のパイプラインです:
 |`-n`|haploid 数|**6**|3 品種 × 2 hap|
 |`-p`|percent identity|**95**|許容する塩基同一性 (>90% で align)|
 |`-s`|segment length (bp)|**10000**|wfmash の最小 align 長|
-|`-V`|VCF reference path|`satsuma#1:#`|vg deconstruct の座標基準(§5.2 で決定)|
+|`-V`|VCF reference path|`CUN#1:#`|vg deconstruct の座標基準(§5.2 で決定)|
 |`-Y`|PanSN separator|`#`|PanSN 名の区切り文字|
 |`-t`|スレッド数|32-48|CPU 数に応じて|
 
@@ -276,7 +276,7 @@ bash scripts/pg01_prepare_input.sh tables/samplesheet.tsv .
 
 このスクリプトが行うこと:
 1. 各 haploid FASTA を **PanSN 命名にリネーム**
-   例: `CKUhap1_r1.0ch1` → `kunenbo#1#chr01`
+   例: `CKUhap1_r1.0ch1` → `CKU#1#chr01`
 2. 染色体番号を統一(`chr01` 〜 `chr09`)
 3. 染色体別に FASTA を分割
 4. bgzip 圧縮 + samtools faidx
@@ -352,7 +352,7 @@ done
 03_pangenome/by_chr/chr09_pggb/
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.gfa    ← 最終 graph (GFA)
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.og     ← odgi 形式
-├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.satsuma#1.vcf  ← VCF
+├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.CUN#1.vcf  ← VCF
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.og.lay.draw_multiqc.png  ← 2D 図
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.*.params.yml  ← 実行パラメータの正本
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.*.log        ← ログ

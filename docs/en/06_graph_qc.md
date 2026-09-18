@@ -126,12 +126,12 @@ seqkit fx2tab -nl chr09_paths.fa
 
 Example output:
 ```
-satsuma#1#chr09    45,179,797
-satsuma#2#chr09    29,817,104
-kishu#1#chr09      28,530,969
-kishu#2#chr09      31,864,882
-kunenbo#1#chr09    30,157,514
-kunenbo#2#chr09    30,337,761
+CUN#1#chr09    45,179,797
+CUN#2#chr09    29,817,104
+CKI#1#chr09      28,530,969
+CKI#2#chr09      31,864,882
+CKU#1#chr09    30,157,514
+CKU#2#chr09    30,337,761
 ```
 
 Compare to **input FASTA sequence lengths**.
@@ -166,11 +166,11 @@ max_diff = 0.000% means input is fully preserved.
 
 ### 6.4.1 Verifying the family with the graph
 
-Because the pedigree is known (STS = KSH × KNN), we can check whether path similarities in the graph match the expected relationship.
+Because the pedigree is known (CUN = CKI × CKU), we can check whether path similarities in the graph match the expected relationship.
 
 Expected:
-- STS_hap1 (Kishu-derived) should be highly similar to one Kishu haplotype
-- STS_hap2 (Kunenbo-derived) should be highly similar to one Kunenbo haplotype
+- CUN_hap1 (Kishu-derived) should be highly similar to one Kishu haplotype
+- CUN_hap2 (Kunenbo-derived) should be highly similar to one Kunenbo haplotype
 
 ### 6.4.2 Running odgi similarity
 
@@ -188,21 +188,23 @@ We focus on the `jaccard.similarity` column.
 ### 6.4.3 AVG-based vs MAX-based tests
 
 **Averages (AVG) can mislead**:
-- "STS_hap1 vs Kishu (average)" averages against both KSH_hap1 and KSH_hap2
-- But F1 inherits from **only one** parental haplotype, so the true similarity is skewed
+- "CUN_hap1 vs Kishu (average)" averages against both CKI_hap1 and CKI_hap2
+- CUN_hap1 is a recombinant **mosaic** of CKI_hap1 and CKI_hap2 (§2.4), so which one is closer switches from segment to segment. Averaging the two flattens that structure, **shrinking the gap against CKU and burying the pedigree signal**
 
 **Maxima (MAX) are more meaningful**:
-- MAX(STS_hap1 vs KSH_hap1, STS_hap1 vs KSH_hap2) = the closest KSH haplotype
-- This corresponds to the actual donor haplotype
+- MAX(CUN_hap1 vs CKI_hap1, CUN_hap1 vs CKI_hap2) = the closer of the two CKI haplotypes
+- Even with recombination, every segment of CUN_hap1 descends from one of CKI's two chromosomes, so this MAX is necessarily higher than the MAX on the CKU side
+
+> **Note**: this tests that **the donor parent is CKI**, not that "the donor haplotype is CKI_hap1". A single whole-chromosome Jaccard cannot identify *which* parental haplotype a segment came from (§2.4); that needs the windowed analysis in §7.5.2.
 
 `pg03_qc_graph.sh` computes both:
 
 ```
-STS_hap1 vs each parent haplotype:
-  kishu#1#chr09    Jaccard = 0.62  ← donor candidate
-  kishu#2#chr09    Jaccard = 0.35
-  kunenbo#1#chr09  Jaccard = 0.42
-  kunenbo#2#chr09  Jaccard = 0.48
+CUN_hap1 vs each parent haplotype:
+  CKI#1#chr09    Jaccard = 0.62  ← closer CKI hap
+  CKI#2#chr09    Jaccard = 0.35
+  CKU#1#chr09  Jaccard = 0.42
+  CKU#2#chr09  Jaccard = 0.48
 
 --- Pedigree tests ---
   AVG-based: NO   (perturbed by haplotype leakage)
@@ -215,7 +217,7 @@ The **haplotype leakage** seen in Chapter 4 (Satsuma haps larger than parental l
 
 Because Jaccard = intersection / union, **when one path is longer, union grows and Jaccard drops**.
 
-If STS_hap1 is 45 Mb (1.5× expected 30 Mb) and other haps are 30 Mb:
+If CUN_hap1 is 45 Mb (1.5× expected 30 Mb) and other haps are 30 Mb:
 - intersection = 25 Mb (shared)
 - union = 45 + 30 - 25 = 50 Mb
 - Jaccard = 0.50
@@ -225,8 +227,8 @@ Numerically low, but only because one path is longer—not because biological si
 ### 6.4.5 Thresholds
 
 MAX-based:
-- STS_hap1 has highest similarity to some KSH hap → OK
-- STS_hap2 has highest similarity to some KNN hap → OK
+- CUN_hap1 has highest similarity to some CKI hap → OK
+- CUN_hap2 has highest similarity to some CKU hap → OK
 
 If both, pedigree is **consistent**. If either fails, suspect hap1/hap2 label swap or a trio phasing failure.
 
@@ -237,10 +239,10 @@ If both, pedigree is **consistent**. If either fails, suspect hap1/hap2 label sw
 ### 6.5.1 VCF generation
 
 ```bash
-vg deconstruct -P satsuma#1 -H '#' -a -e -t 8 chr09.smooth.final.gfa > chr09.vcf
+vg deconstruct -P CUN#1 -H '#' -a -e -t 8 chr09.smooth.final.gfa > chr09.vcf
 ```
 
-- `-P satsuma#1`: coordinate anchor (reference path)
+- `-P CUN#1`: coordinate anchor (reference path)
 - `-H '#'`: PanSN separator
 - `-a`: include nested variants
 - `-e`: path-traversal-based calls

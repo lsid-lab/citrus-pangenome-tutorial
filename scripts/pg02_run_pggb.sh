@@ -14,7 +14,7 @@
 #   -p 95     : percent identity threshold
 #   -s 10000  : segment length (bp)
 #   -n 6      : number of haplotypes (3 cultivars x 2 hap)
-#   -V 'satsuma#1:#' : VCF coordinate reference = STS_hap1 (Kishu-derived)
+#   -V 'CUN#1:#' : VCF coordinate reference = CUN_hap1 (Kishu-derived)
 #   -Y '#'    : PanSN separator
 #   -B 1G     : seqwish transclose batch size (see NOTE below)
 #
@@ -45,7 +45,7 @@ PARAM_p=95
 PARAM_s=10000
 PARAM_n=6
 PARAM_B=1G       # Must be explicitly set (see NOTE in header)
-PARAM_V='satsuma#1:#'
+PARAM_V='CUN#1:#'
 
 # ===================================================================
 # Phase 0: Preflight checks

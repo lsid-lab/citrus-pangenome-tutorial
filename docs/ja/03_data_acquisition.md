@@ -95,8 +95,8 @@ Plant GARDEN では、同一種でも**複数のアセンブリバージョン**
 |---|---|---|
 | t55188.**G001** | `C_unshiu_v1.0_scaffolds.fa.gz` | Kawahara 2020 hybrid(旧、非phased) |
 | t55188.**G002** | `CUNuph_r1.0.fasta.gz` | Isobe 2023 phased(統合表示) |
-| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **STS の hap1 (Kishu由来)** |
-| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **STS の hap2 (Kunenbo由来)** |
+| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **CUN の hap1 (Kishu由来)** |
+| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **CUN の hap2 (Kunenbo由来)** |
 
 **本教材で使うのは G003 と G004**(および紀州・九年母の対応する phased アセンブリ)です。
 
@@ -126,7 +126,7 @@ citrus-pangenome-tutorial/
 **追加で作成するのは `data/` ディレクトリだけ**です。ここに各品種のアセンブリを配置します:
 
 ```bash
-mkdir -p data/{satsuma,kishu,kunenbo}
+mkdir -p data/{CUN,CKI,CKU}
 ```
 
 Pangenome の中間ファイルや出力(`03_pangenome/` など)は、後続のスクリプトが自動で作成します。
@@ -137,13 +137,13 @@ Pangenome の中間ファイルや出力(`03_pangenome/` など)は、後続の�
 citrus-pangenome-tutorial/
 ├── ...(clone時のファイル)
 ├── data/                          # ★ ダウンロードしたアセンブリ(あなたが用意)
-│   ├── satsuma/
+│   ├── CUN/
 │   │   ├── CUNphKi_r1.0.pmol.fasta.gz
 │   │   └── CUNphKu_r1.0.ch1-9.fasta.gz
-│   ├── kishu/
+│   ├── CKI/
 │   │   ├── CKIhap1_r1.0.pmol.fasta.gz
 │   │   └── CKIhap2_r1.0.pmol.fasta.gz
-│   └── kunenbo/
+│   └── CKU/
 │       ├── CKUhap1_r1.0.pmol.fasta.gz
 │       └── CKUhap2_r1.0.pmol.fasta.gz
 └── 03_pangenome/                  # ★ 後続スクリプトが作成
@@ -171,7 +171,7 @@ bash scripts/download_plantgarden.sh data/
 
 このスクリプトは以下を実行します:
 1. Plant GARDEN の対象URLから 6 つのアセンブリファイルをダウンロード
-2. `data/{satsuma,kishu,kunenbo}/` に配置
+2. `data/{CUN,CKI,CKU}/` に配置
 3. sha256 チェックサムで整合性検証(オプション)
 
 ### 3.6.3 期待されるファイルサイズ
@@ -196,9 +196,9 @@ bash scripts/download_plantgarden.sh data/
 
 ```tsv
 sample_id	cultivar_jp	species	pansn_prefix	hap1_path	hap2_path	source	pedigree
-STS	温州みかん	Citrus unshiu	satsuma	data/satsuma/CUNphKi_r1.0.pmol.fasta.gz	data/satsuma/CUNphKu_r1.0.ch1-9.fasta.gz	Plant GARDEN t55188.G003/G004	F1: KSH × KNN
-KSH	紀州みかん	Citrus kinokuni	kishu	data/kishu/CKIhap1_r1.0.pmol.fasta.gz	data/kishu/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488	温州の母親
-KNN	九年母	Citrus nobilis	kunenbo	data/kunenbo/CKUhap1_r1.0.pmol.fasta.gz	data/kunenbo/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549	温州の父親
+CUN	温州みかん	Citrus unshiu	CUN	data/CUN/CUNphKi_r1.0.pmol.fasta.gz	data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz	Plant GARDEN t55188.G003/G004	F1: CKI × CKU
+CKI	紀州みかん	Citrus kinokuni	CKI	data/CKI/CKIhap1_r1.0.pmol.fasta.gz	data/CKI/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488	温州の母親
+CKU	九年母	Citrus nobilis	CKU	data/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/CKU/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549	温州の父親
 ```
 
 **列の意味**:
@@ -223,7 +223,7 @@ KNN	九年母	Citrus nobilis	kunenbo	data/kunenbo/CKUhap1_r1.0.pmol.fasta.gz	dat
 ls -la data/*/*.fa.gz
 
 # 各 FASTA の中身をちらっと見る
-zcat data/satsuma/CUNphKi_r1.0.pmol.fasta.gz | head -3
+zcat data/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
 
 # 期待される出力例:
 # >CUNphKi_r1.0ch1

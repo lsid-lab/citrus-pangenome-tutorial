@@ -59,9 +59,9 @@ Most pangenome tools require a **special sequence naming convention**.
 
 Example:
 ```
-satsuma#1#chr01    # Satsuma mandarin, hap1, chromosome 1
-satsuma#2#chr01    # Satsuma mandarin, hap2, chromosome 1
-kishu#1#chr01      # Kishu mandarin, hap1, chromosome 1
+CUN#1#chr01    # Satsuma mandarin, hap1, chromosome 1
+CUN#2#chr01    # Satsuma mandarin, hap2, chromosome 1
+CKI#1#chr01      # Kishu mandarin, hap1, chromosome 1
 ```
 
 The `#` character is the delimiter. This scheme lets tools mechanically identify **which cultivar/haplotype a sequence belongs to**.
@@ -125,9 +125,9 @@ On an L line, the CIGAR says **how many bases the end of the first node overlaps
 
 **P (Path)**: describes how a specific sequence traverses the graph
 ```
-P  satsuma#1#chr01  1+,2+,4+,5+  *
-P  kishu#1#chr01    1+,3+,4+,5+  *
-P  kunenbo#1#chr01  1+,3-,4+,5+  *    # node 3 traversed in reverse = inversion
+P  CUN#1#chr01  1+,2+,4+,5+  *
+P  CKI#1#chr01    1+,3+,4+,5+  *
+P  CKU#1#chr01  1+,3-,4+,5+  *    # node 3 traversed in reverse = inversion
 ```
 
 The columns are `P <PathName> <SegmentNames> <Overlaps>`.
@@ -156,10 +156,10 @@ They all use the `.gfa` extension, but **the dialects differ, and so does downst
 ```
 W  <SampleId>  <HapIndex>  <SeqId>  <SeqStart>  <SeqEnd>  <Walk>
 
-W  satsuma  1  chr01  0  30512000  >1>2>4>5
+W  CUN  1  chr01  0  30512000  >1>2>4>5
 ```
 
-Where a `P` line writes `1+,2+` with commas, a `W` line writes `>1>2` (`>` = forward, `<` = reverse; the role is the same as `+` / `-`). Note also that what PanSN packs into the single string `satsuma#1#chr01` is **split across three columns** here: sample, haplotype, contig.
+Where a `P` line writes `1+,2+` with commas, a `W` line writes `>1>2` (`>` = forward, `<` = reverse; the role is the same as `+` / `-`). Note also that what PanSN packs into the single string `CUN#1#chr01` is **split across three columns** here: sample, haplotype, contig.
 
 **rGFA (reference GFA)**
 
@@ -293,8 +293,8 @@ eukaryota  →  viridiplantae  →  embryophyta  →  eudicots
 There is **no dataset specific to Rutaceae or Sapindales**, so the right choice for citrus is the deepest available one, **`eudicots_odb10`**. Order-level datasets such as `brassicales` or `fabales` do exist, but **citrus does not belong to those orders, so they must not be used**. "More specific is better" only holds as long as the dataset actually **contains your organism**.
 
 ```bash
-busco -i data/satsuma/CUNphKi_r1.0.pmol.fasta -m genome \
-      -l eudicots_odb10 -c 16 -o busco/STS_hap1
+busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
+      -l eudicots_odb10 -c 16 -o busco/CUN_hap1
 ```
 
 > The `odb10` suffix is the OrthoDB version the dataset was built from. Newer BUSCO releases also ship `odb12` datasets, so check `busco --list-datasets` to see what your installation has.

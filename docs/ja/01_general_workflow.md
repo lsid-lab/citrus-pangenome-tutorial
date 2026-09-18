@@ -58,9 +58,9 @@ Pangenome ツールの多くは、配列名に**特別な命名規則**を要求
 
 例:
 ```
-satsuma#1#chr01    # 温州みかん、hap1、1番染色体
-satsuma#2#chr01    # 温州みかん、hap2、1番染色体
-kishu#1#chr01      # 紀州みかん、hap1、1番染色体
+CUN#1#chr01    # 温州みかん、hap1、1番染色体
+CUN#2#chr01    # 温州みかん、hap2、1番染色体
+CKI#1#chr01      # 紀州みかん、hap1、1番染色体
 ```
 
 `#` (シャープ) が区切り文字です。この命名で、ツールは**どの配列がどの品種のどのハプロタイプか**を機械的に判別できます。
@@ -124,9 +124,9 @@ L 行における CIGAR は、**前の node の末尾と次の node の先頭が
 
 **P (Path)**: ある配列が graph 内をどう通るかを記述
 ```
-P  satsuma#1#chr01  1+,2+,4+,5+  *
-P  kishu#1#chr01    1+,3+,4+,5+  *
-P  kunenbo#1#chr01  1+,3-,4+,5+  *    # node 3 を逆向きに通る = inversion
+P  CUN#1#chr01  1+,2+,4+,5+  *
+P  CKI#1#chr01    1+,3+,4+,5+  *
+P  CKU#1#chr01  1+,3-,4+,5+  *    # node 3 を逆向きに通る = inversion
 ```
 
 列の意味は `P <PathName> <SegmentNames> <Overlaps>` です。
@@ -136,7 +136,7 @@ P  kunenbo#1#chr01  1+,3-,4+,5+  *    # node 3 を逆向きに通る = inversion
   - `3-` = node 3 を **reverse complement(逆向き)** で通る
 - `<Overlaps>`: node 間の CIGAR のリスト。オーバーラップを持たない pangenome graph では `*` と書くのが普通です
 
-**`-` が現れるのは inversion(逆位)を通るとき**です。上の例では kunenbo だけが node 3 を反転して持っている、つまりこの区間に逆位がある、と読めます。教科書的な図では `1+,2+,3+` のように `+` ばかりが並びますが、**実データの graph には `-` を含む path が必ず出てきます**。逆位や、より複雑な再編成 (inverted duplication など) は、この向きの情報としてしか graph 上に現れません。「path とは node の列ではなく、**向き付きの** node の列である」という点が、単なる線形配列との大きな違いです。
+**`-` が現れるのは inversion(逆位)を通るとき**です。上の例では CKU だけが node 3 を反転して持っている、つまりこの区間に逆位がある、と読めます。教科書的な図では `1+,2+,3+` のように `+` ばかりが並びますが、**実データの graph には `-` を含む path が必ず出てきます**。逆位や、より複雑な再編成 (inverted duplication など) は、この向きの情報としてしか graph 上に現れません。「path とは node の列ではなく、**向き付きの** node の列である」という点が、単なる線形配列との大きな違いです。
 
 このように、node が共有され、edge で分岐が表現され、path が個々の haplotype を(向きまで含めて)示します。
 
@@ -155,10 +155,10 @@ P  kunenbo#1#chr01  1+,3-,4+,5+  *    # node 3 を逆向きに通る = inversion
 ```
 W  <SampleId>  <HapIndex>  <SeqId>  <SeqStart>  <SeqEnd>  <Walk>
 
-W  satsuma  1  chr01  0  30512000  >1>2>4>5
+W  CUN  1  chr01  0  30512000  >1>2>4>5
 ```
 
-`P` 行が `1+,2+` とカンマ区切りで書くところを、`W` 行は `>1>2` と書きます(`>` = forward、`<` = reverse。役割は `+` / `-` と同じです)。また、PanSN で `satsuma#1#chr01` と1本の文字列に詰め込んでいた情報が、sample / haplotype / contig の**3つの列に分解**されています。
+`P` 行が `1+,2+` とカンマ区切りで書くところを、`W` 行は `>1>2` と書きます(`>` = forward、`<` = reverse。役割は `+` / `-` と同じです)。また、PanSN で `CUN#1#chr01` と1本の文字列に詰め込んでいた情報が、sample / haplotype / contig の**3つの列に分解**されています。
 
 **rGFA (reference GFA)**
 
@@ -294,8 +294,8 @@ eukaryota  →  viridiplantae  →  embryophyta  →  eudicots
 の順に specific になっていきます。**Rutaceae やムクロジ目 (Sapindales) に特化したデータセットは用意されていない**ため、柑橘で選ぶべきは最も下位にある **`eudicots_odb10`** です。`brassicales`(アブラナ目)や `fabales`(マメ目)といった目レベルのデータセットも存在しますが、**柑橘はそれらに含まれないので選んではいけません**。「より specific なら何でも良い」のではなく、**対象生物を含んでいることが大前提**です。
 
 ```bash
-busco -i data/satsuma/CUNphKi_r1.0.pmol.fasta -m genome \
-      -l eudicots_odb10 -c 16 -o busco/STS_hap1
+busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
+      -l eudicots_odb10 -c 16 -o busco/CUN_hap1
 ```
 
 > データセット名末尾の `odb10` は元になった OrthoDB のバージョンです。新しい BUSCO では `odb12` 系も提供されているので、`busco --list-datasets` で手元の BUSCO が何を持っているか確認してください。

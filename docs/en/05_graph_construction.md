@@ -84,14 +84,14 @@ The baseline for statements like "sample A differs from B by X". Affects the fra
 Because we use PGGB (which is reference-free):
 
 - **(1) Structural backbone is not needed**
-- **(2) Coordinate anchor**: chosen as **STS_hap1 (CUNphKi)** (reasoning below)
+- **(2) Coordinate anchor**: chosen as **CUN_hap1 (CUNphKi)** (reasoning below)
 - **(3) Comparative baseline**: depends on context
 
 **When we say "we chose a reference," we are actually choosing (2) coordinate anchor**, not the graph's backbone. Keep this distinction in mind.
 
-### Why STS_hap1 as coordinate anchor?
+### Why CUN_hap1 as coordinate anchor?
 
-1. **STS is the pedigree center**: F1 of KSH × KNN, connecting the two parents in the graph
+1. **CUN is the pedigree center**: F1 of CKI × CKU, connecting the two parents in the graph
 2. **hap1 is identified as Kishu-derived**: unambiguous interpretation via trio phasing
 3. **Newest and highest-quality of the Isobe 2023 assemblies**
 
@@ -161,7 +161,7 @@ Concretizing the "parameters to watch" concept from Chapter 1 as PGGB options.
 |`-n`|Number of haploids|**6**|3 cultivars × 2 hap|
 |`-p`|Percent identity|**95**|Threshold for alignment (≥90% identity)|
 |`-s`|Segment length (bp)|**10000**|Minimum alignment unit for wfmash|
-|`-V`|VCF reference path|`satsuma#1:#`|Coordinate anchor for vg deconstruct (§5.2)|
+|`-V`|VCF reference path|`CUN#1:#`|Coordinate anchor for vg deconstruct (§5.2)|
 |`-Y`|PanSN separator|`#`|Delimiter in PanSN names|
 |`-t`|Thread count|32-48|Depends on your CPU allocation|
 
@@ -276,7 +276,7 @@ bash scripts/pg01_prepare_input.sh tables/samplesheet.tsv .
 
 This script:
 1. Renames each haploid FASTA using **PanSN** format
-   e.g., `CKUhap1_r1.0ch1` → `kunenbo#1#chr01`
+   e.g., `CKUhap1_r1.0ch1` → `CKU#1#chr01`
 2. Normalizes chromosome numbers to `chr01`..`chr09`
 3. Groups sequences by chromosome
 4. bgzip compresses and creates `.fai` indexes
@@ -352,7 +352,7 @@ For each chromosome (chr09 example):
 03_pangenome/by_chr/chr09_pggb/
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.gfa    ← final graph (GFA)
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.og     ← odgi format
-├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.satsuma#1.vcf  ← VCF
+├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.CUN#1.vcf  ← VCF
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.og.lay.draw_multiqc.png  ← 2D image
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.*.params.yml  ← authoritative parameters
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.*.log         ← log

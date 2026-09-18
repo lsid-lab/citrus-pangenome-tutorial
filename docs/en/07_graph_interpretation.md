@@ -30,14 +30,14 @@ VCF (Variant Call Format) is the standard for describing **variant positions and
 
 Example (excerpt from chr09):
 ```
-#CHROM   POS      ID    REF   ALT      QUAL   FILTER   INFO   FORMAT   satsuma#1  satsuma#2  kishu#1  ...
-satsuma#1#chr09   1234  .     A     G        .      .        AT=snp   GT       0          1          0        ...
-satsuma#1#chr09   2000  .     ACGT  A        .      .        AT=del3  GT       0          1          1        ...
-satsuma#1#chr09   3500  .     C     CGATCG   .      .        AT=ins5  GT       0          0          1        ...
+#CHROM   POS      ID    REF   ALT      QUAL   FILTER   INFO   FORMAT   CUN#1  CUN#2  CKI#1  ...
+CUN#1#chr09   1234  .     A     G        .      .        AT=snp   GT       0          1          0        ...
+CUN#1#chr09   2000  .     ACGT  A        .      .        AT=del3  GT       0          1          1        ...
+CUN#1#chr09   3500  .     C     CGATCG   .      .        AT=ins5  GT       0          0          1        ...
 ```
 
 Columns:
-- **CHROM**: coordinate reference path (here `satsuma#1#chr09`)
+- **CHROM**: coordinate reference path (here `CUN#1#chr09`)
 - **POS**: position (1-based)
 - **REF**: reference (coordinate anchor) base
 - **ALT**: alternative allele
@@ -67,8 +67,8 @@ awk 'length($4)>=50 || length($5)>=50' chr09.vcf
 How many ALT variants does each cultivar carry?
 
 ```bash
-# ALT variants for satsuma#2 (the other hap from the coordinate anchor)
-bcftools view -s satsuma#2 chr09.vcf | \
+# ALT variants for CUN#2 (the other hap from the coordinate anchor)
+bcftools view -s CUN#2 chr09.vcf | \
   bcftools query -f '[%GT]\n' | grep -c '^1'
 ```
 
@@ -147,35 +147,37 @@ Compute from `similarity` output:
 
 |Comparison|Expected Jaccard|
 |---|---|
-|STS_hap1 vs KSH_hap1|**High** (0.95+ if directly inherited)|
-|STS_hap1 vs KSH_hap2|**Moderate** (sister chromosome, 0.4-0.6)|
-|STS_hap1 vs KNN_hap*|**Low** (unrelated parent, 0.3-0.5)|
+|CUN_hap1 vs CKI_hap1 / CKI_hap2|**High against both** — CUN_hap1 is a mosaic of the two, so neither one stands out alone|
+|CUN_hap1 vs CKU_hap*|**Relatively low** — the father contributed nothing to CUN_hap1|
 
-Similarly:
-- STS_hap2 should be most similar to one KNN haplotype
+Symmetrically, CUN_hap2 scores high against both CKU haplotypes and low against CKI.
+
+> Absolute values are depressed by haplotype leakage (§4.6), so judge by the **ranking between cultivars, not against a threshold**. Note also that a single whole-chromosome Jaccard cannot tell you *which* parental haplotype a segment descends from (§2.4) — that needs the windowed analysis in §7.5.2.
 
 ### 7.4.2 Specific pedigree pattern
 
-Trace which Kishu haplotype STS_hap1 came from:
+Trace which parent CUN_hap1 came from:
 
 ```bash
-# Jaccard of STS_hap1 vs each KSH hap
-awk '$1 ~ /^satsuma#1/ && $2 ~ /^kishu/' chr09_similarity.tsv
+# Jaccard of CUN_hap1 vs each CKI hap
+awk '$1 ~ /^CUN#1/ && $2 ~ /^CKI/' chr09_similarity.tsv
 ```
 
 If the output shows:
 ```
-satsuma#1#chr09  kishu#1#chr09  ...  Jaccard = 0.95
-satsuma#1#chr09  kishu#2#chr09  ...  Jaccard = 0.55
+CUN#1#chr09  CKI#1#chr09  ...  Jaccard = 0.95
+CUN#1#chr09  CKI#2#chr09  ...  Jaccard = 0.55
 ```
 
-then we can conclude **STS_hap1 came from KSH_hap1**.
+then, because the CKI side is consistently higher than the CKU side, we can conclude **CUN_hap1 is maternally (CKI) derived**.
+
+What we must **not** conclude is "CKI_hap1 scores higher, therefore CUN_hap1 came from CKI_hap1". CUN_hap1 is a mosaic of CKI_hap1 and CKI_hap2 (§2.4); the gap only means that CKI_hap1-derived segments happen to make up a somewhat larger share of that mosaic. Which segment came from which is only visible in the windowed analysis below.
 
 ### 7.4.3 Accounting for haplotype leakage
 
 The haplotype leakage discovered in Chapter 4 (Satsuma haps larger than parental) manifests as:
 
-- STS_hap1 vs KSH Jaccard is somewhat lower than expected (e.g., 0.6 instead of 0.7)
+- CUN_hap1 vs CKI Jaccard is somewhat lower than expected (e.g., 0.6 instead of 0.7)
 - Average-based interpretation may appear to break pedigree consistency
 
 **MAX-based** interpretation confirms pedigree, and the graph itself is correctly built. This was the key point of §6.4.4.
@@ -190,18 +192,18 @@ Biological patterns that may emerge from the graph:
 
 According to Wu et al. 2018, Satsuma is mainly mandarin but carries some pummelo ancestry. If in the graph:
 
-- Some path regions in STS do not match KSH or KNN and form independent paths
+- Some path regions in CUN do not match CKI or CKU and form independent paths
 
 these may be pummelo-derived. Pummelo-derived regions are concentrated on specific chromosomal segments (Fujii et al. 2016), so visualization may spot them.
 
 ### 7.5.2 Recombination in F1
 
-STS_hap1 is "one of KSH's haplotypes"—but actually the result of meiotic recombination. Along one chromosome we may see:
+As described in §2.4, CUN_hap1 is a **recombinant mosaic** of CKI_hap1 and CKI_hap2. Computing similarity in windows along a chromosome, we see:
 
-- Regions where STS_hap1 is close to KSH_hap1
-- Regions where STS_hap1 is close to KSH_hap2
+- Regions where CUN_hap1 is close to CKI_hap1
+- Regions where CUN_hap1 is close to CKI_hap2
 
-with switches between them at **recombination breakpoints**.
+alternating, with the boundaries marking **crossover breakpoints** — the positions of the actual crossovers that occurred in the mother's meiosis, read off the graph.
 
 ### 7.5.3 Repeats and TEs
 

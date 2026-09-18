@@ -95,8 +95,8 @@ Plant GARDEN publishes **multiple assembly versions** for the same species in pa
 |---|---|---|
 | t55188.**G001** | `C_unshiu_v1.0_scaffolds.fa.gz` | Kawahara 2020 hybrid (older, unphased) |
 | t55188.**G002** | `CUNuph_r1.0.fasta.gz` | Isobe 2023 phased (integrated) |
-| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **STS hap1 (Kishu-derived)** |
-| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **STS hap2 (Kunenbo-derived)** |
+| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **CUN hap1 (Kishu-derived)** |
+| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **CUN hap2 (Kunenbo-derived)** |
 
 **We use G003 and G004** (and corresponding phased assemblies for Kishu and Kunenbo) in this tutorial.
 
@@ -126,7 +126,7 @@ citrus-pangenome-tutorial/
 **The only directory you need to create is `data/`**, where the assemblies will be placed:
 
 ```bash
-mkdir -p data/satsuma data/kishu data/kunenbo
+mkdir -p data/CUN data/CKI data/CKU
 ```
 
 Intermediate files and outputs (`03_pangenome/`, etc.) are created automatically by subsequent scripts.
@@ -137,13 +137,13 @@ Recommended layout:
 citrus-pangenome-tutorial/
 ├── ...(files present at clone time)
 ├── data/                              # (you provide) Downloaded assemblies
-│   ├── satsuma/
+│   ├── CUN/
 │   │   ├── CUNphKi_r1.0.pmol.fasta.gz
 │   │   └── CUNphKu_r1.0.ch1-9.fasta.gz
-│   ├── kishu/
+│   ├── CKI/
 │   │   ├── CKIhap1_r1.0.pmol.fasta.gz
 │   │   └── CKIhap2_r1.0.pmol.fasta.gz
-│   └── kunenbo/
+│   └── CKU/
 │       ├── CKUhap1_r1.0.pmol.fasta.gz
 │       └── CKUhap2_r1.0.pmol.fasta.gz
 └── 03_pangenome/                      # (created by later scripts)
@@ -171,7 +171,7 @@ bash scripts/download_plantgarden.sh data/
 
 This script:
 1. Downloads the six assemblies from Plant GARDEN
-2. Places them under `data/{satsuma,kishu,kunenbo}/`
+2. Places them under `data/{CUN,CKI,CKU}/`
 3. (Optionally) verifies integrity with SHA256 checksums
 
 ### 3.6.3 Expected file sizes
@@ -196,9 +196,9 @@ Contents of `tables/samplesheet.tsv`:
 
 ```tsv
 sample_id  cultivar_jp  species          pansn_prefix  hap1_path                                        hap2_path                                          source                            pedigree
-STS        Satsuma      Citrus unshiu    satsuma       data/satsuma/CUNphKi_r1.0.pmol.fasta.gz         data/satsuma/CUNphKu_r1.0.ch1-9.fasta.gz          Plant GARDEN t55188.G003/G004    F1: KSH x KNN
-KSH        Kishu        Citrus kinokuni  kishu         data/kishu/CKIhap1_r1.0.pmol.fasta.gz           data/kishu/CKIhap2_r1.0.pmol.fasta.gz             Plant GARDEN t408488             mother of STS
-KNN        Kunenbo      Citrus nobilis   kunenbo       data/kunenbo/CKUhap1_r1.0.pmol.fasta.gz         data/kunenbo/CKUhap2_r1.0.pmol.fasta.gz           Plant GARDEN t481549             father of STS
+CUN        Satsuma      Citrus unshiu    CUN       data/CUN/CUNphKi_r1.0.pmol.fasta.gz         data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz          Plant GARDEN t55188.G003/G004    F1: CKI x CKU
+CKI        Kishu        Citrus kinokuni  CKI         data/CKI/CKIhap1_r1.0.pmol.fasta.gz           data/CKI/CKIhap2_r1.0.pmol.fasta.gz             Plant GARDEN t408488             mother of CUN
+CKU        Kunenbo      Citrus nobilis   CKU       data/CKU/CKUhap1_r1.0.pmol.fasta.gz         data/CKU/CKUhap2_r1.0.pmol.fasta.gz           Plant GARDEN t481549             father of CUN
 ```
 
 **Column meanings**:
@@ -223,7 +223,7 @@ Once downloads complete, verify:
 ls -la data/*/*.fa.gz
 
 # Peek at each FASTA
-zcat data/satsuma/CUNphKi_r1.0.pmol.fasta.gz | head -3
+zcat data/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
 
 # Expected output:
 # >CUNphKi_r1.0ch1

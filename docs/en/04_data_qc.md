@@ -59,7 +59,7 @@ tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
 ### Running it
 
 ```bash
-seqkit stats -a data/satsuma/CUNphKi_r1.0.pmol.fasta.gz
+seqkit stats -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz
 ```
 
 The `-a` (all) flag adds N50 and other details.
@@ -99,12 +99,12 @@ Example results:
 
 | sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | verdict |
 |---|---|---|---|---|---|---|
-| STS | 1 | 9 | 348.5 | 34.5 | 35.9 | WARN (size slightly large) |
-| STS | 2 | 9 | 358.0 | 44.2 | 35.0 | WARN (size slightly large) |
-| KSH | 1 | 9 | 304.2 | 33.5 | 36.0 | OK |
-| KSH | 2 | 9 | 310.3 | 32.5 | 36.0 | OK |
-| KNN | 1 | 9 | 323.9 | 36.6 | 35.9 | OK |
-| KNN | 2 | 9 | 303.4 | 32.9 | 36.0 | OK |
+| CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | WARN (size slightly large) |
+| CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | WARN (size slightly large) |
+| CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | OK |
+| CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | OK |
+| CKU | 1 | 9 | 323.9 | 36.6 | 35.9 | OK |
+| CKU | 2 | 9 | 303.4 | 32.9 | 36.0 | OK |
 
 ---
 
@@ -141,8 +141,8 @@ The two haplotypes of the same cultivar should have similar sizes:
 
 Comparing the six haploids to expected values, **Satsuma's two haplotypes are noticeably larger**:
 
-- STS hap1: 348.5 Mb
-- STS hap2: 358.0 Mb
+- CUN hap1: 348.5 Mb
+- CUN hap2: 358.0 Mb
 - Other four haps: 303-324 Mb
 
 A 15-20 Mb (5-7%) difference is within tolerance, but **a Merqury k-mer analysis** (see below) reveals a more subtle issue.
@@ -153,12 +153,12 @@ Merqury (Rhie et al., 2020) evaluates **assembly redundancy** from k-mer frequen
 
 | Assembly | Unique k-mer% | 2× occurrence % | 3+× % | Total bp |
 |---|---|---|---|---|
-| CKUhap2 (KNN hap2) | 90.17% | 5.46% | 4.37% | 303.4 Mb |
-| CKIhap1 (KSH hap1) | 89.95% | 5.61% | 4.44% | 304.2 Mb |
-| CKUhap1 (KNN hap1) | 89.42% | 5.77% | 4.81% | 323.9 Mb |
-| CKIhap2 (KSH hap2) | 89.28% | 6.06% | 4.66% | 310.3 Mb |
-| **CUNphKu (STS hap2)** | **82.64%** | **11.89%** | **5.47%** | **358.0 Mb** |
-| **CUNphKi (STS hap1)** | **79.64%** | **14.65%** | **5.71%** | **348.4 Mb** |
+| CKUhap2 (CKU hap2) | 90.17% | 5.46% | 4.37% | 303.4 Mb |
+| CKIhap1 (CKI hap1) | 89.95% | 5.61% | 4.44% | 304.2 Mb |
+| CKUhap1 (CKU hap1) | 89.42% | 5.77% | 4.81% | 323.9 Mb |
+| CKIhap2 (CKI hap2) | 89.28% | 6.06% | 4.66% | 310.3 Mb |
+| **CUNphKu (CUN hap2)** | **82.64%** | **11.89%** | **5.47%** | **358.0 Mb** |
+| **CUNphKi (CUN hap1)** | **79.64%** | **14.65%** | **5.71%** | **348.4 Mb** |
 
 **Satsuma's two haps are clearly anomalous**:
 - Unique k-mer rate is ~10 pp lower
@@ -194,8 +194,8 @@ Evaluate **assembly completeness** by counting how many single-copy orthologs fr
 
 ```bash
 # compleasm (faster than BUSCO)
-compleasm run -a data/satsuma/CUNphKi_r1.0.pmol.fasta.gz \
-              -o busco/STS_hap1 \
+compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
+              -o busco/CUN_hap1 \
               -l eudicots_odb10 \
               -t 16
 ```
@@ -211,7 +211,7 @@ Compares an assembly to a k-mer database built from HiFi raw reads:
 
 ```bash
 meryl count k=21 output hifi.meryl hifi_reads.fastq.gz
-merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz STS
+merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz CUN
 ```
 
 We do not run Merqury in this tutorial (we do not use raw HiFi reads), but **the interpretation is based on the colleague's data cited in §4.6**.

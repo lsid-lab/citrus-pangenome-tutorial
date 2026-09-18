@@ -30,14 +30,14 @@ VCF (Variant Call Format) は、参照配列と比較した**変異の位置と�
 
 例(chr09 の一部):
 ```
-#CHROM   POS      ID    REF   ALT      QUAL   FILTER   INFO   FORMAT   satsuma#1  satsuma#2  kishu#1  ...
-satsuma#1#chr09   1234  .     A     G        .      .        AT=snp   GT       0          1          0        ...
-satsuma#1#chr09   2000  .     ACGT  A        .      .        AT=del3  GT       0          1          1        ...
-satsuma#1#chr09   3500  .     C     CGATCG   .      .        AT=ins5  GT       0          0          1        ...
+#CHROM   POS      ID    REF   ALT      QUAL   FILTER   INFO   FORMAT   CUN#1  CUN#2  CKI#1  ...
+CUN#1#chr09   1234  .     A     G        .      .        AT=snp   GT       0          1          0        ...
+CUN#1#chr09   2000  .     ACGT  A        .      .        AT=del3  GT       0          1          1        ...
+CUN#1#chr09   3500  .     C     CGATCG   .      .        AT=ins5  GT       0          0          1        ...
 ```
 
 各列:
-- **CHROM**: 座標基準 path (今回は `satsuma#1#chr09`)
+- **CHROM**: 座標基準 path (今回は `CUN#1#chr09`)
 - **POS**: 位置(1-based)
 - **REF**: 参照(座標基準 path)の塩基
 - **ALT**: 変異体
@@ -67,8 +67,8 @@ awk 'length($4)>=50 || length($5)>=50' chr09.vcf
 各品種にどれだけの ALT variant があるか:
 
 ```bash
-# satsuma#2 (座標基準の反対 hap) の変異数
-bcftools view -s satsuma#2 chr09.vcf | \
+# CUN#2 (座標基準の反対 hap) の変異数
+bcftools view -s CUN#2 chr09.vcf | \
   bcftools query -f '[%GT]\n' | grep -c '^1'
 ```
 
@@ -147,35 +147,37 @@ bash scripts/pg04_visualize.sh . chr09
 
 |比較|Jaccard(期待)|
 |---|---|
-|STS_hap1 vs KSH_hap1|**高い** (STS_hap1 が KSH_hap1 由来なら 0.95+)|
-|STS_hap1 vs KSH_hap2|**中程度** (姉妹染色体、0.4-0.6)|
-|STS_hap1 vs KNN_hap*|**低い** (無関係な他家親、0.3-0.5)|
+|CUN_hap1 vs CKI_hap1 / CKI_hap2|**高い**(どちらに対しても。CUN_hap1 は両者のモザイクなので、片方だけが突出することはない)|
+|CUN_hap1 vs CKU_hap*|**相対的に低い**(父方は CUN_hap1 に寄与していない)|
 
-同様に:
-- STS_hap2 は KNN_hap のどちらか一方と最も似ているはず
+同様に、CUN_hap2 は CKU の 2 本に対して高く、CKI に対して低くなります。
+
+> 絶対値は haplotype leakage (§4.6) の影響で下振れするので、**閾値ではなく品種間の大小関係**で判断してください。また、染色体全体の Jaccard 1 個では「親のどちらのハプロタイプ由来か」までは決まりません(§2.4)。それを見るには §7.5.2 の窓ごとの解析が必要です。
 
 ### 7.4.2 具体的な pedigree pattern
 
-「hap1 が KSH のどちらから来たか」を graph 上で追跡:
+「hap1 が父母どちらから来たか」を graph 上で追跡:
 
 ```bash
-# STS_hap1 との各 KSH hap の Jaccard
-awk '$1 ~ /^satsuma#1/ && $2 ~ /^kishu/' chr09_similarity.tsv
+# CUN_hap1 との各 CKI hap の Jaccard
+awk '$1 ~ /^CUN#1/ && $2 ~ /^CKI/' chr09_similarity.tsv
 ```
 
 もし出力が:
 ```
-satsuma#1#chr09  kishu#1#chr09  ...  Jaccard = 0.95
-satsuma#1#chr09  kishu#2#chr09  ...  Jaccard = 0.55
+CUN#1#chr09  CKI#1#chr09  ...  Jaccard = 0.95
+CUN#1#chr09  CKI#2#chr09  ...  Jaccard = 0.55
 ```
 
-なら、**STS_hap1 は KSH_hap1 由来**と結論できます。
+のように **CKI 側が CKU 側より一貫して高ければ、CUN_hap1 は母方 (CKI) 由来**と結論できます。
+
+ここで **「CKI_hap1 のほうが高いから CUN_hap1 = CKI_hap1 由来」と結論してはいけません。** CUN_hap1 は CKI_hap1 と CKI_hap2 のモザイクであり(§2.4)、この差は「モザイクの中で CKI_hap1 区間の占める割合がやや大きい」ことを意味するにすぎません。どの区間がどちらに由来するかは、次節の窓ごとの解析で初めて見えます。
 
 ### 7.4.3 Haplotype leakage の影響を認める
 
-第4章で発見した haplotype leakage(STS の 2 hap が親系統より大きい)は、以下のように現れます:
+第4章で発見した haplotype leakage(CUN の 2 hap が親系統より大きい)は、以下のように現れます:
 
-- STS_hap1 vs KSH の Jaccard がやや低め(例えば 0.7 期待が 0.6 に見える)
+- CUN_hap1 vs CKI の Jaccard がやや低め(例えば 0.7 期待が 0.6 に見える)
 - 平均値だけ見ると pedigree consistency が破綻して見える
 
 しかし、**MAX-based で見れば pedigree は成立**しており、graph 自体は正しく作られている。これが第 6.4.4 節での重要な学習ポイントでした。
@@ -190,18 +192,18 @@ Graph から見えるかもしれない生物学的パターン:
 
 Wu et al. 2018 によれば、温州はメインは mandarin だが少量の pummelo 遺伝子プールを持ちます。もし graph 上で:
 
-- STS の一部の path 領域が KSH や KNN と一致せず、独自の path になっている
+- CUN の一部の path 領域が CKI や CKU と一致せず、独自の path になっている
 
 なら、それは pummelo 由来の可能性があります。プミロ由来領域は特定の chr の特定領域に集中している(Fujii et al. 2016 で報告)ため、可視化で見つけやすいはず。
 
 ### 7.5.2 F1 の組み換え領域
 
-STS の hap1 は「KSH の hap1 か hap2 のどちらか」ですが、実際は減数分裂での組み換え結果です。染色体の一部で:
+§2.4 で見たとおり、CUN_hap1 は CKI_hap1 / CKI_hap2 の**組み換えモザイク**です。染色体に沿って窓ごとに類似度を計算すると:
 
-- STS_hap1 が KSH_hap1 に近い領域
-- STS_hap1 が KSH_hap2 に近い領域
+- CUN_hap1 が CKI_hap1 に近い領域
+- CUN_hap1 が CKI_hap2 に近い領域
 
-の切り替わりが見られるかもしれません。これが**組み換え点**です。
+が交互に現れ、その境目が**組み換え点 (crossover breakpoint)** です。母親の減数分裂で実際に起きた乗換えの位置を、graph 上から読み取っていることになります。
 
 ### 7.5.3 反復配列や TE の存在
 
@@ -229,7 +231,7 @@ VCF から SV を抽出し、TE データベースに BLAST すれば、この�
 
 **Haplotype leakage の影響**:
 
-- STS の 2 hap のサイズや Jaccard 値には、trio phasing の不完全性が影響
+- CUN の 2 hap のサイズや Jaccard 値には、trio phasing の不完全性が影響
 - 生物学的解釈の際は、この癖を意識する
 - 実データは常に完璧ではない、というリアリティを学べる
 

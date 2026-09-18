@@ -59,7 +59,7 @@ tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
 ### 実行
 
 ```bash
-seqkit stats -a data/satsuma/CUNphKi_r1.0.pmol.fasta.gz
+seqkit stats -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz
 ```
 
 `-a` (all) オプションで N50 などの詳細も出ます。
@@ -99,12 +99,12 @@ bash scripts/qc01_stats.sh tables/samplesheet.tsv .
 
 | sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | 判定 |
 |---|---|---|---|---|---|---|
-| STS | 1 | 9 | 348.5 | 34.5 | 35.9 | ⚠️(サイズやや大) |
-| STS | 2 | 9 | 358.0 | 44.2 | 35.0 | ⚠️(サイズやや大) |
-| KSH | 1 | 9 | 304.2 | 33.5 | 36.0 | ✅ |
-| KSH | 2 | 9 | 310.3 | 32.5 | 36.0 | ✅ |
-| KNN | 1 | 9 | 323.9 | 36.6 | 35.9 | ✅ |
-| KNN | 2 | 9 | 303.4 | 32.9 | 36.0 | ✅ |
+| CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | ⚠️(サイズやや大) |
+| CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | ⚠️(サイズやや大) |
+| CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | ✅ |
+| CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | ✅ |
+| CKU | 1 | 9 | 323.9 | 36.6 | 35.9 | ✅ |
+| CKU | 2 | 9 | 303.4 | 32.9 | 36.0 | ✅ |
 
 ---
 
@@ -141,8 +141,8 @@ bash scripts/qc01_stats.sh tables/samplesheet.tsv .
 
 上の期待値と実データを比較すると、**温州みかんの 2 haplotype がやや大きい**ことに気づきます:
 
-- STS hap1: 348.5 Mb
-- STS hap2: 358.0 Mb
+- CUN hap1: 348.5 Mb
+- CUN hap2: 358.0 Mb
 - 他 4 hap: 303-324 Mb
 
 15-20 Mb の差 (5-7%) は許容範囲ですが、**同僚の Merqury k-mer 分析(第 4.7 節参照)**で、より深刻な問題が見つかっています。
@@ -153,12 +153,12 @@ Merqury (Rhie et al., 2020) は k-mer の頻度から**アセンブリの重複�
 
 | アセンブリ | ユニーク k-mer% | 2回出現 % | 3回以上 % | 総塩基 |
 |---|---|---|---|---|
-| CKUhap2 (KNN hap2) | 90.17% | 5.46% | 4.37% | 303.4 Mb |
-| CKIhap1 (KSH hap1) | 89.95% | 5.61% | 4.44% | 304.2 Mb |
-| CKUhap1 (KNN hap1) | 89.42% | 5.77% | 4.81% | 323.9 Mb |
-| CKIhap2 (KSH hap2) | 89.28% | 6.06% | 4.66% | 310.3 Mb |
-| **CUNphKu (STS hap2)** | **82.64%** | **11.89%** | **5.47%** | **358.0 Mb** |
-| **CUNphKi (STS hap1)** | **79.64%** | **14.65%** | **5.71%** | **348.4 Mb** |
+| CKUhap2 (CKU hap2) | 90.17% | 5.46% | 4.37% | 303.4 Mb |
+| CKIhap1 (CKI hap1) | 89.95% | 5.61% | 4.44% | 304.2 Mb |
+| CKUhap1 (CKU hap1) | 89.42% | 5.77% | 4.81% | 323.9 Mb |
+| CKIhap2 (CKI hap2) | 89.28% | 6.06% | 4.66% | 310.3 Mb |
+| **CUNphKu (CUN hap2)** | **82.64%** | **11.89%** | **5.47%** | **358.0 Mb** |
+| **CUNphKi (CUN hap1)** | **79.64%** | **14.65%** | **5.71%** | **348.4 Mb** |
 
 **温州の 2 hap は明らかに異常**:
 - ユニーク率が 10 pp 低い
@@ -194,8 +194,8 @@ Pangenome graph の第6章 QC で、この haplotype leakage が影響を及ぼ�
 
 ```bash
 # compleasm (BUSCO より高速)
-compleasm run -a data/satsuma/CUNphKi_r1.0.pmol.fasta.gz \
-              -o busco/STS_hap1 \
+compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
+              -o busco/CUN_hap1 \
               -l eudicots_odb10 \
               -t 16
 ```
@@ -211,7 +211,7 @@ HiFi 生リードから作った k-mer データベースと、アセンブリ�
 
 ```bash
 meryl count k=21 output hifi.meryl hifi_reads.fastq.gz
-merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz STS
+merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz CUN
 ```
 
 本教材では HiFi 生リードを扱わないため、Merqury は行いませんが、**結果の解釈は同僚のデータを引用**します(§4.6)。
@@ -222,7 +222,7 @@ merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz STS
 
 - `seqkit stats` で基本統計を取得
 - 柑橘 haploid は 300-360 Mb、9 chromosome、GC 34-38% を期待
-- **STS の 2 hap は他より大きい**が、これは**haplotype leakage**を示唆
+- **CUN の 2 hap は他より大きい**が、これは**haplotype leakage**を示唆
 - 実データは完璧ではない。後の QC で影響を追跡できるよう、この情報を憶えておく
 
 次章では、いよいよ **pangenome graph の構築**に入ります。
