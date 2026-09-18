@@ -450,7 +450,7 @@ N=$(ls data/input/*.fa.gz | wc -l)
 sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 ```
 
-**`%3` caps how many tasks run at once.** Launching all nine together asks for 9 × 32 = 288 CPUs simultaneously, which on a shared cluster will simply sit in the queue. Set it to whatever your allocation allows.
+**`%3` caps how many tasks run at once.** Launching all nine together asks for 9 × 32 = 288 CPUs simultaneously. Even where no per-user limit is configured, it is courteous not to occupy a shared cluster single-handed. Set it to suit your allocation and how busy the queue is.
 
 **`--mem` is shared by every task in the array**, so size it for the heaviest chromosome. The measurements in §5.7.5 top out at 18 GB for chr03, hence 24 GB.
 
@@ -458,7 +458,26 @@ sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 
 Expect 8-12 hours of wall-clock time (on the environment described in §5.7.5).
 
-### 5.7.5 Time and memory guide (32 CPU)
+### 5.7.5 Time and memory guide
+
+These are **measurements from one specific environment**. Check the conditions before applying the numbers to your own setup.
+
+#### Measurement environment
+
+<!-- TODO: add the CPU model, how time and MaxRSS were obtained (sacct or /usr/bin/time), the measurement date, and who ran it. -->
+
+|Item|Value|
+|---|---|
+|Node|1 socket × 64 physical cores, SMT enabled (ThreadsPerCore=2), 128 logical CPUs|
+|Memory|503 GiB|
+|Node usage|**Shared** with other jobs|
+|**Output filesystem**|**NFSv4.1** (network filesystem, rsize/wsize 1 MB)|
+|Scheduler|Slurm 23.02.2|
+|Container|SingularityCE 3.11.3|
+|OS|Ubuntu 22.04.5 LTS (kernel 6.8.0)|
+|pggb|`ghcr.io/pangenome/pggb`, revision `4225c6c`|
+|Parameters|`-p 95 -s 10000 -n 6 -B 1G -V CUN#1 -t 32`|
+
 
 |Chromosome|Input size|Time|MaxRSS|
 |---|---|---|---|
@@ -472,7 +491,32 @@ Expect 8-12 hours of wall-clock time (on the environment described in §5.7.5).
 |chr08|228.8 Mb|~56 min|13 GB|
 |chr09|195.9 Mb|~29 min|4 GB|
 
-These are collaborator-measured values. Peak memory is at most ~18 GB, so `--mem=64G` provides comfortable headroom.
+These are collaborator-measured values. Peak memory is at most ~18 GB, so the `--mem=24G` in §5.7.4 has comfortable headroom.
+
+#### How to read these numbers
+
+**1. Runtime depends heavily on where the output goes.**
+
+Unless `-D` / `--temp-dir` is given, pggb **writes its intermediates straight into the output directory**. The measurements above had that directory on NFS, so wfmash's PAF and seqwish's intermediates were all read and written across the network. If you can put the temporary files on node-local SSD or NVMe, expect it to be faster.
+
+```bash
+singularity exec "$SIF" pggb \
+  -i data/input/chr09.fa.gz -o results/pggb/chr09 \
+  -D "${TMPDIR:-/tmp}/pggb_chr09" \
+  -p 95 -s 10000 -n 6 -B 1G -V CUN#1 -t 32 -m -S
+```
+
+> **Do not put a comma in the `-D` path.** seqwish reads commas as PAF-file separators, and pggb rejects it.
+
+**2. "32 CPU" means 32 logical CPUs.**
+
+SMT was enabled on the measurement node, so `-t 32` may have corresponded to 16 physical cores (depending on how Slurm allocates). With 32 physical cores available, expect shorter times.
+
+**3. The node was shared.**
+
+I/O and memory bandwidth were shared with other jobs. A dedicated node may be faster.
+
+So the table is neither a floor nor a ceiling — it is **one observation: "on NFS, on a shared node, at 32 logical CPUs, this is what happened"**. Measure one chromosome in your own environment before planning the rest.
 
 ---
 
