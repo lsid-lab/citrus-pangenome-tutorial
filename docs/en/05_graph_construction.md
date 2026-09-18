@@ -212,7 +212,7 @@ For citrus, intra-specific SNP density is around 17/kbp (Kiryu et al. 2026), i.e
 - **Smaller** picks up finer homology, but produces seeds that are not unique inside repeats, adding noise and runtime
 - **Larger** is more stable, but misses rearrangements shorter than the segment
 
-**10 kb is not a citrus-specific figure**; it is a widely used starting point for chromosome-scale assemblies. To check it for your species, **sweep `-s` on your smallest chromosome** and compare:
+**10 kb is not a citrus-specific figure**; it is a widely used starting point for chromosome-scale assemblies. To check it for your species, **sweep `-s` on one cheap chromosome** and compare (chr09 for citrus — it has the lowest measured memory use in §5.7.5):
 
 ```bash
 for S in 5000 10000 20000; do
@@ -359,7 +359,7 @@ singularity exec "$SIF" seqkit seq -n data/input/chr09.fa.gz
 
 ### 5.7.3 Running one chromosome
 
-**This is the actual work.** Start with the smallest, chr09:
+**This is the actual work.** Run one chromosome first to check. We use **chr09** here, because the examples in Chapters 6 and 7 all use chr09 too, so things line up as you read on.
 
 ```bash
 singularity exec "$SIF" pggb \
