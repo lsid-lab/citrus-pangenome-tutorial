@@ -464,16 +464,14 @@ These are **measurements from one specific environment**. Check the conditions b
 
 #### Measurement environment
 
+Only what is needed to interpret the numbers.
+
 |Item|Value|
 |---|---|
-|CPU|AMD EPYC 7713 (64 cores, up to 3.72 GHz), 1 socket|
-|Node|SMT enabled (ThreadsPerCore=2), so 128 logical CPUs|
-|Memory|503 GiB|
+|**Output filesystem**|**A network filesystem (NFS)**|
+|The "32" in `-t 32`|**Logical CPUs** — SMT was enabled, so possibly 16 physical cores|
 |Node usage|**Shared** with other jobs|
-|**Output filesystem**|**NFSv4.1** (network filesystem, rsize/wsize 1 MB)|
-|Scheduler|Slurm 23.02.2|
-|Container|SingularityCE 3.11.3|
-|OS|Ubuntu 22.04.5 LTS (kernel 6.8.0)|
+|Container|Singularity (x86_64 Linux)|
 |pggb|`ghcr.io/pangenome/pggb`, revision `4225c6c`|
 |Parameters|`-p 95 -s 10000 -n 6 -B 1G -V CUN#1 -t 32`|
 

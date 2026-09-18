@@ -464,16 +464,14 @@ sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 
 #### 測定環境
 
+数値の解釈に必要な範囲に留めます。
+
 |項目|値|
 |---|---|
-|CPU|AMD EPYC 7713 (64 コア、最大 3.72 GHz)、1 ソケット|
-|ノード構成|SMT 有効 (ThreadsPerCore=2) のため論理 128 CPU|
-|搭載メモリ|503 GiB|
+|**出力先ストレージ**|**ネットワークファイルシステム (NFS)**|
+|`-t 32` の「32」|**論理 CPU**(SMT 有効なノードのため、物理 16 コア相当の可能性)|
 |ノードの使われ方|**共有**(他ジョブと同居)|
-|**出力先ストレージ**|**NFSv4.1**(ネットワーク FS、rsize/wsize 1 MB)|
-|スケジューラ|Slurm 23.02.2|
-|コンテナ|SingularityCE 3.11.3|
-|OS|Ubuntu 22.04.5 LTS (kernel 6.8.0)|
+|コンテナ|Singularity(x86_64 Linux)|
 |pggb|`ghcr.io/pangenome/pggb`、リビジョン `4225c6c`|
 |パラメータ|`-p 95 -s 10000 -n 6 -B 1G -V CUN#1 -t 32`|
 
