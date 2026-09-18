@@ -359,7 +359,7 @@ singularity exec "$SIF" seqkit seq -n data/input/chr09.fa.gz
 
 ### 5.7.3 Running one chromosome
 
-**This is the actual work.** Run one chromosome first to check. We use **chr09** here, because the examples in Chapters 6 and 7 all use chr09 too, so things line up as you read on.
+**This is the actual work.** We use chr09 here:
 
 ```bash
 singularity exec "$SIF" pggb \

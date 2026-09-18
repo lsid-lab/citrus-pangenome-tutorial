@@ -359,7 +359,7 @@ singularity exec "$SIF" seqkit seq -n data/input/chr09.fa.gz
 
 ### 5.7.3 1 染色体を走らせる
 
-**これが本体です。** まずは 1 本だけ走らせて確かめます。ここでは **chr09** を使います —— 第6・7章の例もすべて chr09 で書かれているので、続けて読むときに揃います。
+**これが本体です。** ここでは chr09 を使います:
 
 ```bash
 singularity exec "$SIF" pggb \
