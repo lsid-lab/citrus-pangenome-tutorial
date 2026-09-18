@@ -123,7 +123,7 @@ Example results:
 | sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | verdict | note |
 |---|---|---|---|---|---|---|---|
 | CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | PASS | 25-55 Mb larger than the parents |
-| CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | PASS | same |
+| CUN | 2 | 9 | 357.6 | 44.2 | 35.0 | PASS | same |
 | CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | PASS | |
 | CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | PASS | |
 | CKU | 1 | 9 | 323.9 | 36.6 | 35.9 | PASS | |

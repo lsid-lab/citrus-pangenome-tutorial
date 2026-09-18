@@ -123,7 +123,7 @@ bash scripts/qc01_stats.sh tables/samplesheet.tsv .
 | sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | 判定 | メモ |
 |---|---|---|---|---|---|---|---|
 | CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | ✅ PASS | 親 2 品種より 25-55 Mb 大きい |
-| CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | ✅ PASS | 同上 |
+| CUN | 2 | 9 | 357.6 | 44.2 | 35.0 | ✅ PASS | 同上 |
 | CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | ✅ PASS | |
 | CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | ✅ PASS | |
 | CKU | 1 | 9 | 323.9 | 36.6 | 35.9 | ✅ PASS | |

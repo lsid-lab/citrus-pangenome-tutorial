@@ -7,8 +7,13 @@
 #     1. Renaming contigs to PanSN-spec format (sample#hap#chr)
 #     2. Normalizing chromosome names to chr01..chr09
 #        (input files may use inconsistent naming: chr01, chr1, CKUhap1_r1.0ch1, ...)
-#     3. Grouping sequences by chromosome (each chr FASTA gets 6 sequences)
-#     4. bgzip compression + samtools faidx indexing
+#     3. Upper-casing the sequence, so that soft-masked (repeat-masked) input
+#        reaches the aligner on the same terms as unmasked input. The r1.0
+#        assemblies contain no lower case at all; the r2.0 assemblies on MiGD2
+#        are distributed repeat-masked. Without this, the two releases would
+#        not be comparable. See docs section 7.6.
+#     4. Grouping sequences by chromosome (each chr FASTA gets 6 sequences)
+#     5. bgzip compression + samtools faidx indexing
 #
 # Input:
 #   samplesheet.tsv with columns:
@@ -165,7 +170,9 @@ with open(samplesheet_path) as f:
                     new_header = f"{tag}#{chr_norm}"
                     out.write(f">{new_header}\n")
                     for sl in seq_lines:
-                        out.write(sl + '\n')
+                        # Upper-case: soft-masked releases (e.g. r2.0 from MiGD2)
+                        # must reach the aligner on the same terms as unmasked ones.
+                        out.write(sl.upper() + '\n')
                     mapped_count += 1
 
             print(f"  [PanSN+normalize] {sid}_hap{hap_idx}: {mapped_count} chromosomes "
