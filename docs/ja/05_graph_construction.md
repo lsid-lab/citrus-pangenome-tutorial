@@ -464,11 +464,10 @@ sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 
 #### 測定環境
 
-<!-- TODO: CPU の型番、時間/MaxRSS の取得方法(sacct か /usr/bin/time か)、測定年月、実測者を追記する -->
-
 |項目|値|
 |---|---|
-|ノード|1 socket × 64 物理コア、SMT 有効 (ThreadsPerCore=2)、論理 128 CPU|
+|CPU|AMD EPYC 7713 (64 コア、最大 3.72 GHz)、1 ソケット|
+|ノード構成|SMT 有効 (ThreadsPerCore=2) のため論理 128 CPU|
 |搭載メモリ|503 GiB|
 |ノードの使われ方|**共有**(他ジョブと同居)|
 |**出力先ストレージ**|**NFSv4.1**(ネットワーク FS、rsize/wsize 1 MB)|
@@ -478,6 +477,7 @@ sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 |pggb|`ghcr.io/pangenome/pggb`、リビジョン `4225c6c`|
 |パラメータ|`-p 95 -s 10000 -n 6 -B 1G -V CUN#1 -t 32`|
 
+#### 実測値
 
 |染色体|入力サイズ|所要時間|MaxRSS|
 |---|---|---|---|

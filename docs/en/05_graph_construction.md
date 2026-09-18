@@ -464,11 +464,10 @@ These are **measurements from one specific environment**. Check the conditions b
 
 #### Measurement environment
 
-<!-- TODO: add the CPU model, how time and MaxRSS were obtained (sacct or /usr/bin/time), the measurement date, and who ran it. -->
-
 |Item|Value|
 |---|---|
-|Node|1 socket × 64 physical cores, SMT enabled (ThreadsPerCore=2), 128 logical CPUs|
+|CPU|AMD EPYC 7713 (64 cores, up to 3.72 GHz), 1 socket|
+|Node|SMT enabled (ThreadsPerCore=2), so 128 logical CPUs|
 |Memory|503 GiB|
 |Node usage|**Shared** with other jobs|
 |**Output filesystem**|**NFSv4.1** (network filesystem, rsize/wsize 1 MB)|
@@ -478,6 +477,7 @@ These are **measurements from one specific environment**. Check the conditions b
 |pggb|`ghcr.io/pangenome/pggb`, revision `4225c6c`|
 |Parameters|`-p 95 -s 10000 -n 6 -B 1G -V CUN#1 -t 32`|
 
+#### Measurements
 
 |Chromosome|Input size|Time|MaxRSS|
 |---|---|---|---|
