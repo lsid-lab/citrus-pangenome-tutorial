@@ -4,8 +4,9 @@
 
 - Understand why QC is essential before pangenome construction
 - Learn basic usage of `seqkit stats`
-- Know the expected values for citrus assemblies
-- Recognize abnormal patterns and how to handle them
+- **Judge QC results by comparison with species expectations rather than fixed thresholds**
+- Know the expected values for citrus, and how to translate them to other species
+- **Learn the discipline that keeps "larger than the rest" from becoming "anomalous"**
 
 ---
 
@@ -47,14 +48,37 @@ For diploid organisms, the paternal and maternal chromosomes are **assembled sep
 
 ### Installation
 
-```bash
-# conda
-mamba install -c bioconda seqkit
+Most tools in this tutorial install via **conda / mamba**. If you do not have an environment yet, **Miniforge** is the current recommendation.
 
-# or single binary
+**Why Miniforge**: the conda-forge channel is preconfigured and **`mamba` (fast dependency solving) ships with it out of the box**. The Anaconda/Miniconda `defaults` channel carries commercial-use licensing conditions that depend on your organization's size; Miniforge only looks at conda-forge, so that concern does not arise. Note that **Mambaforge was retired in January 2025** and folded into Miniforge3 (since Miniforge 23.3.1 the two are essentially identical).
+
+```bash
+# Same command on Linux and macOS - OS and architecture are resolved automatically
+wget "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash "Miniforge3-$(uname)-$(uname -m).sh"
+
+# Reopen your shell, then check
+mamba --version
+```
+
+> `$(uname)` expands to `Linux` or `Darwin`, and `$(uname -m)` to `x86_64` / `aarch64` / `arm64`. Without `wget`, use
+> `curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"`.
+
+A dedicated environment makes it easier to add tools in later chapters:
+
+```bash
+mamba create -n citrus-pg -c conda-forge -c bioconda seqkit
+mamba activate citrus-pg
+```
+
+**seqkit is also available as a single binary** if you would rather not use conda:
+
+```bash
 wget https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz
 tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
 ```
+
+> The PGGB toolchain used from Chapter 5 onward is installed as a **Singularity image**, not via conda (§5.5, `scripts/setup_singularity_wrappers.sh`). Conda here covers only this chapter's QC tools.
 
 ### Running it
 
@@ -97,100 +121,213 @@ Output: `qc/stats_summary.tsv`
 
 Example results:
 
-| sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | verdict |
-|---|---|---|---|---|---|---|
-| CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | WARN (size slightly large) |
-| CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | WARN (size slightly large) |
-| CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | OK |
-| CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | OK |
-| CKU | 1 | 9 | 323.9 | 36.6 | 35.9 | OK |
-| CKU | 2 | 9 | 303.4 | 32.9 | 36.0 | OK |
+| sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | verdict | note |
+|---|---|---|---|---|---|---|---|
+| CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | PASS | 25-55 Mb larger than the parents → §4.6 |
+| CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | PASS | same |
+| CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | PASS | |
+| CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | PASS | |
+| CKU | 1 | 9 | 323.9 | 36.6 | 35.9 | PASS | |
+| CKU | 2 | 9 | 303.4 | 32.9 | 36.0 | PASS | |
+
+**All six haploids pass.** Every one of them falls inside the citrus expectations `qc01_stats.sh` uses (290-370 Mb, 9 chromosomes, GC 34-38%).
+
+That CUN's two haplotypes are larger than the others is **recorded as an observation**, but whether it deserves to be called an anomaly is a separate question. §4.6 takes it up.
 
 ---
 
-## 4.5 Points to check
+## 4.5 Points to check — compare against expectations, not fixed thresholds
 
-### Point 1: Chromosome-scale determination
+Every number given so far is **an expectation for citrus specifically** (n=9, haploid ~300-360 Mb). Memorize them as absolute thresholds and they stop working the moment you move to another species.
 
-- `num_seqs ≤ 20`: chromosome-scale (OK)
-- `num_seqs 20-200`: semi-fragmented (scaffolds not fully joined) (WARN)
-- `num_seqs > 200`: over-fragmented, difficult for pangenome (FAIL)
+Apply "`num_seqs ≤ 20` means chromosome-scale" to human, for example, and **even T2T-CHM13 (24 sequences) is flagged as semi-fragmented**. Replace the fixed thresholds with the question: **how does this compare to what is expected for this species?**
 
-### Point 2: Size
+> The six assemblies used in this tutorial are all **published, high-quality, chromosome-scale assemblies** (9 pseudomolecules, N50 over 30 Mb). There is in fact **no need** to re-do QC here and find problems.
+>
+> The point of this section is to give you a method you can take to **your own data**: what to check, and what to check it against.
 
-- 300-360 Mb (haploid): normal range
-- < 290 Mb: possible missing information
-- > 370 Mb: incomplete collapse, potential haplotype mixing
+### Point 1: Contiguity — has it reached chromosome scale?
 
-### Point 3: hap1 vs hap2 within a cultivar
+What matters is not the absolute sequence count but **how it compares to the expected chromosome number n for that species**.
 
-The two haplotypes of the same cultivar should have similar sizes:
+| Metric | How to judge |
+|---|---|
+| `num_seqs` | Is it close to **n** (plus organelles and unplaced scaffolds)? |
+| `N50` | Is it close to **the median chromosome length of that species**? At chromosome scale, N50 ≈ median chromosome length |
+| `L50` | Is it about **half the chromosome count** (n/2)? Far above n means fragmentation |
 
-- Difference ≤ 5%: perfect match (OK)
-- Difference 5-15%: acceptable but worth checking (WARN)
-- Difference > 15%: possible **phasing failure** (FAIL)
+| Species | n (haploid) | Expected num_seqs | Expected N50 |
+|---|---|---|---|
+| Citrus | 9 | ~9 | 30-40 Mb |
+| Human (T2T-CHM13) | 23 | ~24 | ~150 Mb |
+| Rice | 12 | ~12 | ~30 Mb |
+| *Arabidopsis* | 5 | ~5 | ~23 Mb |
 
-### Point 4: GC content
+**Never judge on `num_seqs` alone.** An assembly can carry thousands of unplaced scaffolds and still be chromosome-scale for practical purposes, as long as **over 95% of the total bases sit in the top n sequences**. Conversely, few sequences may just mean long scaffolds full of `N`. Always read `num_seqs` together with `N50`.
 
-- 34-38%: normal citrus range (OK)
-- < 34% or > 38%: possible contamination
+Two assemblies of the very same Satsuma mandarin illustrate the gap:
+
+| Assembly | Total | Sequences | N50 |
+|---|---:|---:|---:|
+| Shimizu et al. (2017) draft | 359.7 Mb | 20,876 scaffolds | 386 kb |
+| Isobe et al. (2023) `CUNphKi` | 348.5 Mb | 9 pseudomolecules | ~38 Mb |
+
+**Nearly the same genome size; contiguity differs by a factor of 100.** Only the latter is usable for pangenome construction.
+
+### Point 2: Total length — compare with the known genome size
+
+There is no universal "normal range" for `sum_len`. Compare against **a genome size estimate for your species**, from:
+
+- Assembly sizes in prior publications on the same or a close species
+- Flow cytometry measurements (e.g. the [Plant DNA C-values Database](https://cvalues.science.kew.org/))
+- A k-mer based estimate from your own reads (GenomeScope2 and similar)
+
+|Relative to the estimate|Possible interpretation|
+|---|---|
+|Within ±10%|As expected|
+|**Smaller**|Missing sequence, or collapsed repeats|
+|**Larger**|Duplicated haplotype (leakage), contamination — or an outdated estimate|
+
+**Note that neither direction is evidence of a problem on its own.** Genome size routinely differs by 10-20% even between close relatives, and the estimates themselves have spread. §4.6 works through exactly this trap with real numbers.
+
+### Point 3: hap1 vs hap2 — this one is species-independent
+
+The two haplotypes of one individual are **the same chromosome set of the same individual**, so there is no good reason for their sizes to diverge much. This is one of the few checks that **does not depend on the species**.
+
+- Difference ≤ 5%: consistent
+- Difference 5-15%: worth checking
+- Difference > 15%: suspect phasing failure, or sequence piling into one haplotype
+
+(Highly heterozygous individuals, large hemizygous regions, and sex chromosomes are exceptions.)
+
+### Point 4: GC content — compare with the known value for the species
+
+GC content varies widely by species: citrus ~35%, human ~41%, rice ~44%, and *Plasmodium falciparum* around 19%. Judge not by an absolute band but by **whether you are within 1-2 pp of published assemblies of the same species**.
+
+Looking at **per-sequence GC** is more informative than the global figure:
+
+```bash
+# name / length / GC% for each sequence
+seqkit fx2tab -nlg data/CUN/CUNphKi_r1.0.pmol.fasta.gz
+```
+
+**A single sequence far off the rest** points to contamination — bacteria, organelles, or another species. (Organellar genomes differ in GC from the nuclear genome, so this catches them.)
+
+### Running `qc01_stats.sh` on another species
+
+The expected values in `scripts/qc01_stats.sh` can be overridden from the environment. For non-citrus data, pass that species' values:
+
+```bash
+# Example: human (n=23, ~3.1 Gb, GC ~41%)
+EXPECTED_NUM_CHR=23 \
+EXPECTED_SIZE_MIN=2900 EXPECTED_SIZE_MAX=3300 \
+EXPECTED_GC_MIN=40.0 EXPECTED_GC_MAX=42.0 \
+bash scripts/qc01_stats.sh tables/samplesheet.tsv .
+```
+
+The contiguity thresholds are derived automatically from `EXPECTED_NUM_CHR`.
 
 ---
 
-## 4.6 A real-data observation: haplotype leakage
+## 4.6 Before calling a number "anomalous": CUN's larger haplotypes
 
-Comparing the six haploids to expected values, **Satsuma's two haplotypes are noticeably larger**:
+In the §4.4 table, **CUN's two haplotypes are 25-55 Mb larger than the two parents**:
 
-- CUN hap1: 348.5 Mb
-- CUN hap2: 358.0 Mb
-- Other four haps: 303-324 Mb
+- CUN hap1: 348.5 Mb / CUN hap2: 358.0 Mb
+- The four CKI and CKU haps: 303.4 - 323.9 Mb
 
-A 15-20 Mb (5-7%) difference is within tolerance, but **a Merqury k-mer analysis** (see below) reveals a more subtle issue.
+How should you read that? **This is the part of the chapter most worth practising.**
 
-### Discovery through Merqury
+### Step 1: It is inside the expected range to begin with
 
-Merqury (Rhie et al., 2020) evaluates **assembly redundancy** from k-mer frequencies. A collaborator's Merqury analysis yielded:
+The citrus range `qc01_stats.sh` uses is **290-370 Mb**, so both 348.5 and 358.0 are **inside** it. All six haploids come out as `PASS`. "Larger than the others" and "outside the expected range" are different statements.
 
-| Assembly | Unique k-mer% | 2× occurrence % | 3+× % | Total bp |
-|---|---|---|---|---|
+### Step 2: Compare against known values, not against the rest of your dataset
+
+Here are the published genome sizes for Satsuma mandarin:
+
+| Source | Reported size |
+|---|---:|
+| Shimizu et al. (2017) Satsuma draft (*Front Genet*) | 359.7 Mb |
+| Kawahara et al. (2020) Satsuma (MiGD) | 346 Mb |
+| **This tutorial's CUN hap1 / hap2** | **348.5 / 358.0 Mb** |
+
+**They line up precisely.** Satsuma's assembly size is entirely ordinary *for Satsuma*.
+
+The more natural reading is not "Satsuma is large" but "**the two parents — which are different species — have relatively small genomes**". A 10-20% genome size difference between close relatives is unremarkable, in citrus and elsewhere.
+
+> **Lesson**: being larger than the other samples in your dataset is not, by itself, evidence of anything. **The thing to compare against is what is already known about the species, not the other samples you happen to have.** That is precisely what Point 2 of §4.5 is about.
+
+### Step 3: An independent angle — k-mer redundancy
+
+Separately from total length, one can ask **how much sequence is duplicated within an assembly**. A k-mer tally performed while developing this tutorial showed the following:
+
+<!-- TODO: confirm and state who ran this analysis and under what conditions (k value, tool and version, whether unplaced sequence was included). -->
+
+| Assembly | Unique k-mer % | 2× % | 3+× % | Total bp |
+|---|---:|---:|---:|---:|
 | CKUhap2 (CKU hap2) | 90.17% | 5.46% | 4.37% | 303.4 Mb |
 | CKIhap1 (CKI hap1) | 89.95% | 5.61% | 4.44% | 304.2 Mb |
 | CKUhap1 (CKU hap1) | 89.42% | 5.77% | 4.81% | 323.9 Mb |
 | CKIhap2 (CKI hap2) | 89.28% | 6.06% | 4.66% | 310.3 Mb |
-| **CUNphKu (CUN hap2)** | **82.64%** | **11.89%** | **5.47%** | **358.0 Mb** |
-| **CUNphKi (CUN hap1)** | **79.64%** | **14.65%** | **5.71%** | **348.4 Mb** |
+| **CUNphKu (CUN hap2)** | **82.64%** | **11.89%** | 5.47% | 358.0 Mb |
+| **CUNphKi (CUN hap1)** | **79.64%** | **14.65%** | 5.71% | 348.5 Mb |
 
-**Satsuma's two haps are clearly anomalous**:
-- Unique k-mer rate is ~10 pp lower
-- 2× occurrence k-mers are **twice as high** as parental lines
-- Total size is 30 Mb larger
+> ⚠️ **How to treat this table**: it is an **unpublished internal tally**, not peer-reviewed, and its analysis conditions (k value, tool and version, scope) are not established. Read it as **an illustration of a kind of check**, and **not as an assessment of the quality of the Isobe et al. (2023) assemblies.**
 
-This is called **haplotype leakage**: the trio phasing could not fully separate the two haplotypes, leaving **shared sequence in both haps**.
+CUN's two haplotypes carry roughly twice the fraction of 2×-occurring k-mers that the parents do. At least three explanations fit:
 
-Specifically:
-- Repeat-rich regions (near centromeres, TE clusters, etc.)
-- Regions with unusually low/high heterozygosity
+1. **Satsuma simply has more repetitive sequence** — a genuine biological difference
+2. **Haplotype leakage** — trio phasing failed to fully separate the haplotypes, leaving the same sequence in both
+3. **Differences in how the tally was run** — the k value, low-complexity masking, whether unplaced sequence was included
 
-are hard to phase and remain collapsed in both haplotypes.
+### Step 4: Know how the question would be settled
 
-### Why we address this in the tutorial
+What matters is that **there is a way to distinguish those three.**
 
-**Reason 1: Real data is never perfect**
-Isobe et al. 2023 is a world-class trio phasing example, yet not flawless. Experiencing the gap between textbook and real data is valuable.
+Merqury (Rhie et al., 2020) is not, in fact, a tool for counting k-mer redundancy *within* an assembly: it compares an assembly against **a k-mer database built from the raw reads**. Given trio reads, it yields direct measures:
 
-**Reason 2: Necessary for interpreting later QC**
-Haplotype leakage will affect our pangenome graph QC in Chapter 6. Knowing about it here allows correct interpretation.
+- **QV** — base-level accuracy
+- **completeness** — fraction of read k-mers present in the assembly
+- **false duplication rate** — **the direct measure of haplotype leakage**
+- **hap-mer blob plot** — which parent's k-mers ended up in which haplotype
 
-**Reason 3: Honest declaration of limits**
-The graph we build will contain some effects of this leakage—we should acknowledge this openly.
+**If you want to claim haplotype leakage, these are what you should be looking at.** The reads are available from DDBJ DRA (PRJDB15866), but this tutorial does not handle raw reads, so we stop here — and therefore **this tutorial does not adjudicate between the three hypotheses above.**
 
----
+### Why this belongs in the tutorial
+
+Because **the hard part of QC is not producing numbers, it is deciding whether a number deserves to be called anomalous.** The habit to build here:
+
+1. **Observe** — CUN's two haps are larger than the rest
+2. **Don't jump** — "larger than the others" ≠ "anomalous"; against published values it is exactly as expected
+3. **Add an independent angle** — k-mer redundancy does differ
+4. **Hold several hypotheses** — biology / leakage / analysis conditions
+5. **Know the deciding experiment** — Merqury with trio reads separates them
+6. **Withhold judgment until it is decided** — while still tracking the downstream effect
+
+Step 6 is the practically important one. In Chapter 6 you will watch CUN's larger haplotypes **push its Jaccard similarities down** (§6.4.4). Whether the cause is (1) or (2), **the effect on how you read the graph is the same** — which is why the observation is worth carrying forward.
 
 ## 4.7 Additional QC tools (optional)
 
 ### BUSCO / compleasm (completeness)
 
-Evaluate **assembly completeness** by counting how many single-copy orthologs from a related lineage are detected.
+Evaluate **assembly completeness** by counting how many single-copy orthologs from a related lineage are detected. How to read the metrics and how to pick a lineage dataset are covered in §1.3.
+
+**Install** (using the mamba from §4.3):
+
+```bash
+# BUSCO itself, or compleasm, its faster reimplementation
+mamba install -c conda-forge -c bioconda busco
+mamba install -c conda-forge -c bioconda compleasm
+```
+
+**Fetch the lineage dataset** (once; takes a few minutes):
+
+```bash
+compleasm download eudicots_odb10
+```
+
+**Run**:
 
 ```bash
 # compleasm (faster than BUSCO)
@@ -200,7 +337,7 @@ compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
               -t 16
 ```
 
-Expected: **Complete > 95%, Duplicated < 5%**.
+Expected: **Complete > 95%, Duplicated < 5%**. These are haplotype-resolved assemblies, so run it **separately on each of the six haploids**.
 
 ### Merqury (k-mer QV and haplotype leakage)
 
@@ -209,30 +346,56 @@ Compares an assembly to a k-mer database built from HiFi raw reads:
 - **Completeness**: fraction of read-derived k-mers found in the assembly
 - **Duplication**: detects haplotype leakage
 
+**Install**: Merqury depends on Java and R, so a **dedicated environment** is safest. `meryl` comes along as a dependency.
+
 ```bash
+mamba create -n merqury -c conda-forge -c bioconda merqury openjdk=11
+mamba activate merqury
+
+merqury.sh --version   # check it runs
+meryl --version
+```
+
+> If you hit an error like `$MERQURY is not set`, export it first: `export MERQURY="$CONDA_PREFIX/share/merqury"`.
+
+**Run**:
+
+```bash
+# 1) Build a k-mer database from the raw HiFi reads
 meryl count k=21 output hifi.meryl hifi_reads.fastq.gz
+
+# 2) Compare against the assemblies (passing both haps also compares them to each other)
 merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz CUN
 ```
 
-We do not run Merqury in this tutorial (we do not use raw HiFi reads), but **the interpretation is based on the colleague's data cited in §4.6**.
+With trio reads (both parents plus the offspring) you can additionally build `hapmers` and obtain the **false duplication rate** and **hap-mer blob plot** — the proper tools for deciding whether haplotype leakage occurred.
+
+**We do not run Merqury in this tutorial**, since we do not handle raw reads. Note that the k-mer tally quoted in §4.6 is *not* this canonical use of Merqury (see the caveat there). The reads are available from DDBJ DRA BioProject `PRJDB15866` (§3.1) if you want to try it yourself.
 
 ---
 
 ## Chapter summary
 
 - Use `seqkit stats` for basic statistics
-- Citrus haploids should be 300-360 Mb, 9 chromosomes, GC 34-38%
-- **Satsuma's two haps are larger** than parental lines, suggesting **haplotype leakage**
-- Real data is not perfect; remember this observation for downstream QC
+- **Judge against what is expected for your species, not against fixed thresholds.** Citrus's 300-360 Mb / 9 chromosomes / GC 34-38% are citrus numbers
+- Never judge on `num_seqs` alone — read it with `N50` (the same Satsuma exists both as a 20,876-scaffold assembly and as a 9-pseudomolecule one)
+- Comparing hap1 against hap2 is one of the few **species-independent** checks
+- **CUN's two haps are larger than the rest, but well within the published size range for Satsuma (346-360 Mb).** "Larger than the others" is not "anomalous"
+- k-mer redundancy does differ, but the cause (biology / haplotype leakage / analysis conditions) **cannot be settled from this tutorial's data**; that needs Merqury with trio reads
+- Whatever the cause, it **does affect the Jaccard similarities in Chapter 6**, so carry the observation forward
 
 The next chapter starts building the **pangenome graph**.
 
 ## References
 
 - Shen W, et al. (2024). SeqKit2. *iMeta* 3:e191.
-- Rhie A, et al. (2020). Merqury. *Genome Biol* 21:245.
+- Rhie A, et al. (2020). Merqury: reference-free quality, completeness, and phasing assessment for genome assemblies. *Genome Biol* 21:245.
+- Shimizu T, et al. (2017). Draft sequencing of the heterozygous diploid genome of satsuma (*Citrus unshiu* Marc.) using a hybrid assembly approach. *Front Genet* 8:180. (359.7 Mb total, 20,876 scaffolds, N50 386 kb)
+- Kawahara Y, et al. (2020). Mikan Genome Database (MiGD). *Breed Sci* 70(2). (Satsuma, 346 Mb)
 - Manni M, et al. (2021). BUSCO update. *Mol Biol Evol* 38:4647-4654.
-- Huang N, Li H (2023). compleasm. *Bioinformatics* 39:btad595.
+- Huang N, Li H (2023). compleasm: a faster and more accurate reimplementation of BUSCO. *Bioinformatics* 39:btad595.
+- **Miniforge**: <https://github.com/conda-forge/miniforge>
+- **Plant DNA C-values Database**: <https://cvalues.science.kew.org/>
 
 ---
 
