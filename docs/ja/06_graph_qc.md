@@ -211,7 +211,7 @@ CUN_hap1 の各parent hap との類似度:
   MAX-based: YES  (真の pedigree は整合)
 ```
 
-### 6.4.4 Haplotype leakage の影響
+### 6.4.4 CUN の path が長いことの影響
 
 第4章で見た **CUN の 2 hap が親系統より大きい**という観察(§4.4)が、Jaccard 類似度に影響します。
 

@@ -6,6 +6,7 @@
 - Visualize a pangenome graph with odgi
 - Verify pedigree with real data
 - Interpret the results biologically and understand the tutorial's limits
+- **See that an assembly is a versioned artifact, and learn what to do with an observation you cannot explain**
 
 ---
 
@@ -173,7 +174,7 @@ then, because the CKI side is consistently higher than the CKU side, we can conc
 
 What we must **not** conclude is "CKI_hap1 scores higher, therefore CUN_hap1 came from CKI_hap1". CUN_hap1 is a mosaic of CKI_hap1 and CKI_hap2 (§2.4); the gap only means that CKI_hap1-derived segments happen to make up a somewhat larger share of that mosaic. Which segment came from which is only visible in the windowed analysis below.
 
-### 7.4.3 Accounting for haplotype leakage
+### 7.4.3 Accounting for CUN's longer paths
 
 The Chapter 4 observation that CUN's haplotypes are larger than the parents' (§4.4) manifests as:
 
@@ -205,13 +206,82 @@ As described in §2.4, CUN_hap1 is a **recombinant mosaic** of CKI_hap1 and CKI_
 
 alternating, with the boundaries marking **crossover breakpoints** — the positions of the actual crossovers that occurred in the mother's meiosis, read off the graph.
 
+> **Stop here and count them.** As §2.4 explained, a chromosome undergoes **at least one crossover, typically one to three**. Are you seeing clearly more switches than that? If so, they cannot all be genuine crossovers. §7.6 comes back to this.
+
 ### 7.5.3 Repeats and TEs
 
 Many large SVs (5-15 kb) are likely **TE insertions**. Kiryu et al. 2026 report a 5.1 kb LTR retrotransposon insertion. Extracting SVs from VCF and BLASTing against TE databases enables this analysis (beyond the scope of this tutorial).
 
 ---
 
-## 7.6 Limits of the graph from this tutorial
+## 7.6 As it turns out — there is a v2 of this data
+
+By now a few things should have snagged your attention:
+
+1. **CUN's two haplotypes are 25-55 Mb larger than the two parents** (§4.4)
+2. **CUN's Jaccard similarities are depressed because its paths are longer** (§6.4.4, §7.4.3)
+3. **The windowed analysis shows more crossover breakpoints than biology would predict** (§7.5.2)
+
+Taken one at a time, each is the kind of oddity you can shrug off. And indeed, this tutorial has done nothing with them beyond recording them.
+
+### A version 2 exists
+
+The Isobe et al. (2023) assemblies used throughout this tutorial are **version 1**. A **version 2** of the same three cultivars has since been released by NARO on **MiGD2**.
+
+> **MiGD2 (Mikan Genome Database 2)**: <https://mikan.dna.naro.go.jp/migd2/>
+
+**Re-run the same analyses on v2 and all three oddities go away.**
+
+### What changed
+
+**(1) Assembly size**
+
+In v2, **CUN's two haplotypes fall into essentially the same size range as Kishu and Kunenbo.** The 25-55 Mb gap recorded in §4.4 disappears.
+
+<!-- TODO: add a table of seqkit stats for the six v2 haploids (num_seqs / sum_len_Mb / N50_Mb / GC%). -->
+
+In §4.4 we judged that, being inside the published range for Satsuma (346-360 Mb), the size on its own was not evidence of a defect. **That judgement was sound given the information available.** What settled the question was not our reasoning but **the same group rebuilding the same individuals**. Only against a v2 built by the same pipeline does it become fair to say that v1's CUN carried excess sequence.
+
+**(2) Phasing**
+
+This is the more consequential change. In v1, **the parental assignment was mistaken over some intervals of the chromosome** — switch errors. v2 corrects them.
+
+This goes straight to §7.5.2. When you plot, window by window, whether CUN_hap1 is closer to CKI_hap1 or CKI_hap2, a switch can be either of two things:
+
+- **A genuine crossover breakpoint** — a real crossover in the mother's meiosis
+- **A phasing switch error** — an artifact of the analysis
+
+And **windowed similarity alone cannot tell them apart.** Both appear in exactly the same form: from some position onward, the closer relative changes. §7.5.2 said you were reading crossover positions off the graph; strictly, you were reading off **positions that are either a crossover or a phasing error**.
+
+Compare breakpoints between v1 and v2 and the two separate: **the switches that vanish in v2 were switch errors; those that remain are genuine crossovers** — and the count should settle at the biologically plausible one to three per chromosome.
+
+### What to take from this
+
+**1. An assembly is a versioned artifact**
+
+A genome assembly is not settled fact; it is **the best estimate available from the data and algorithms of its moment**. More reads, a better assembler, an improved phasing tool — any of these can supersede it, publication notwithstanding. **Before starting an analysis, check that the assembly you are about to use is the current version.** Check both the public portals (Plant GARDEN, MiGD2, NCBI) and the authors' subsequent papers.
+
+**2. Record what snags you; do not explain it away**
+
+This tutorial deliberately reached no conclusion about CUN's size in §4.4, because the data at hand could not settle it. **Declining to decide what you cannot decide** looks unambitious, but here it was right. An oddity you log rather than over-explain is one you can **reconcile later**, when new information arrives. Seal it with a plausible story and you lose the chance to reconcile at all.
+
+**3. Systematic errors are hard to see in any single metric**
+
+By size alone: within the published range. By Jaccard alone: explained by path length. By breakpoint count alone: easy to shrug off. **The signal was that all three pointed the same way.** Read QC metrics as a set, not one at a time.
+
+### Re-running on v2
+
+The pipeline reads assembly paths from `tables/samplesheet.tsv` and nothing else, so re-running on v2 is straightforward:
+
+1. Fetch the six v2 haploids from MiGD2
+2. Point `hap1_path` / `hap2_path` in `tables/samplesheet.tsv` at the v2 files
+3. Re-run from `qc01_stats.sh` in Chapter 4 through this chapter's analyses
+
+**Not a single line of the scripts needs to change.** Putting the v1 and v2 results side by side may be the best possible finish to this tutorial.
+
+---
+
+## 7.7 Limits of the graph from this tutorial
 
 **What this tutorial's graph enables**:
 
@@ -227,15 +297,16 @@ Many large SVs (5-15 kb) are likely **TE insertions**. Kiryu et al. 2026 report 
 - Not: genus-level super-pangenome (no other *Citrus* species)
 - Not: high-accuracy phylogenetics (rooted phylogeny, divergence time)
 
-**Impact of haplotype leakage**:
+**Constraints inherited from the v1 assemblies** (§7.6):
 
-- Satsuma's hap sizes and Jaccard values reflect incomplete trio phasing
-- Keep this quirk in mind when interpreting
-- Real data is never perfect—this is a real-world lesson
+- CUN's haplotype sizes and Jaccard values are affected by v1's excess sequence
+- The crossover breakpoints seen in §7.5.2 are mixed with v1 phasing switch errors
+- So this tutorial's graph is **more than adequate for learning the methods, but not a basis for biological conclusions**
+- If you want conclusions, rebuild on v2 (§7.6)
 
 ---
 
-## 7.7 Next steps
+## 7.8 Next steps
 
 To extend this tutorial's knowledge:
 
@@ -257,12 +328,14 @@ To extend this tutorial's knowledge:
 
 ---
 
-## Chapter summary
+## 7.9 Chapter summary
 
 - Classify SNPs, indels, and SVs from VCF
 - Confirm graph structure with 1D and 2D visualization
 - Use MAX-based pedigree tests to verify biological validity
-- Recognize haplotype leakage as an interpretive caveat; the graph is still usable
+- **The assemblies used here have a v2, in which the size gap and the phasing switch errors are corrected** (§7.6)
+- Windowed similarity alone **cannot separate a genuine crossover from a phasing error**
+- Log the observations that snag you instead of explaining them away — they can be reconciled later
 - This tutorial's graph is for foundational learning; applications await follow-up projects
 
 ## References
@@ -270,6 +343,7 @@ To extend this tutorial's knowledge:
 - Wu GA, et al. (2018). Genomics of the origin and evolution of *Citrus*. *Nature* 554:311-316.
 - Fujii H, et al. (2016). Parental diagnosis of satsuma mandarin. *Breed Sci* 66:683-691.
 - Kiryu Y, et al. (2026). AlleleMiner. *DNA Res* 33:dsag004.
+- **MiGD2 (Mikan Genome Database 2, NARO)**: <https://mikan.dna.naro.go.jp/migd2/> (where v2 of the v1 assemblies used in this tutorial is published)
 
 ---
 

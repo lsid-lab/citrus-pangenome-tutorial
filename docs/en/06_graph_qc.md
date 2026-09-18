@@ -211,7 +211,7 @@ CUN_hap1 vs each parent haplotype:
   MAX-based: YES  (true pedigree is consistent)
 ```
 
-### 6.4.4 Effect of haplotype leakage
+### 6.4.4 Effect of CUN's longer paths
 
 The observation from Chapter 4 that **CUN's two haplotypes are larger than the parental lines** (§4.4) affects Jaccard similarity.
 
