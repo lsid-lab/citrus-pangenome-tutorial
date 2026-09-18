@@ -420,21 +420,23 @@ bash scripts/pg02_run_pggb.sh . 32            # data/input にある全部
 bash scripts/pg02_run_pggb.sh . 32 chr09      # chr09 だけ
 ```
 
-**SLURM で並列に投げる**場合は、染色体ごとに独立したジョブにします(job array にしないのは、染色体ごとに必要なメモリが大きく違うためです。§5.7.5 参照)。
+**SLURM で並列に投げる**場合は job array が簡単です。
 
-`run_pggb_chr.sbatch`:
+`run_pggb_array.sbatch`:
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=pggb
-#SBATCH --output=results/pggb/logs/%x_%j.out
-#SBATCH --error=results/pggb/logs/%x_%j.err
-#SBATCH --mem=64G
+#SBATCH --output=results/pggb/logs/%x_%A_%a.out
+#SBATCH --error=results/pggb/logs/%x_%A_%a.err
+#SBATCH --mem=24G
 #SBATCH --cpus-per-task=32
 #SBATCH --time=12:00:00
 
-CHR=${1:?染色体名 (例 chr01) を指定してください}
-SIF=${2:?pggb_latest.sif の絶対パスを指定してください}
+SIF=${1:?pggb_latest.sif の絶対パスを指定してください}
+
+CHRS=($(ls data/input/*.fa.gz | xargs -n1 basename | sed 's/\.fa\.gz$//'))
+CHR=${CHRS[$((SLURM_ARRAY_TASK_ID - 1))]}
 
 singularity exec "$SIF" pggb \
   -i "data/input/${CHR}.fa.gz" \
@@ -444,12 +446,17 @@ singularity exec "$SIF" pggb \
 
 ```bash
 mkdir -p results/pggb/logs
-for CHR in $(ls data/input/*.fa.gz | xargs -n1 basename | sed 's/\.fa\.gz$//'); do
-  sbatch run_pggb_chr.sbatch "$CHR" "$SIF"
-done
+N=$(ls data/input/*.fa.gz | wc -l)
+sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 ```
 
-実時間で 8-12 時間で完了する見込みです。
+**`%3` は同時実行数の上限**です。9 本を一斉に流すと 9 × 32 = 288 CPU を同時に要求することになり、共有クラスタではまず順番が回ってきません。自分に割り当てられた上限に合わせて調整してください。
+
+**`--mem` は array 内の全タスクで共通**なので、最も重い染色体に合わせます。§5.7.5 の実測では最大が chr03 の 18 GB なので、24 GB としています。
+
+> 染色体ごとに要求リソースを変えたい場合(サイトのポリシー上、大きなメモリ要求が不利になる場合など)は、`--array` を使わず染色体ごとに `sbatch` を投げても構いません。本教材の実測範囲では、その必要はありません。
+
+実時間で 8-12 時間で完了する見込みです(§5.7.5 の実行環境での目安)。
 
 ### 5.7.5 実行時間とメモリの目安 (32 CPU 使用時)
 
@@ -490,7 +497,7 @@ results/pggb/chr09/
 
 ## 5.9 アラインメントを使い回す —— impg
 
-ここまでの手順は **PGGB を単体で回す**やり方です。一方、現在の大規模 pangenome 構築(HPRC の release 2 など)は、**PGGB を [impg](https://github.com/pangenome/impg) と組み合わせた流れ**になっています。本教材では実行しませんが、考え方は知っておく価値があります。
+ここまでの手順は **PGGB を単体で回す**やり方です。一方、現在の大規模 pangenome 構築(HPRC の release 2 など)は、**PGGB と [impg](https://github.com/pangenome/impg) の組み合わせを採択しています**。本教材では実行しませんが、考え方は知っておく価値があります。
 
 ### 何をするものか
 

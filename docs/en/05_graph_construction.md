@@ -420,21 +420,23 @@ bash scripts/pg02_run_pggb.sh . 32            # everything in data/input
 bash scripts/pg02_run_pggb.sh . 32 chr09      # just chr09
 ```
 
-**To run them in parallel under SLURM**, submit one independent job per chromosome. (Not a job array: memory requirements differ substantially between chromosomes — see §5.7.5.)
+**To run them in parallel under SLURM**, a job array is the simplest route.
 
-`run_pggb_chr.sbatch`:
+`run_pggb_array.sbatch`:
 
 ```bash
 #!/bin/bash
 #SBATCH --job-name=pggb
-#SBATCH --output=results/pggb/logs/%x_%j.out
-#SBATCH --error=results/pggb/logs/%x_%j.err
-#SBATCH --mem=64G
+#SBATCH --output=results/pggb/logs/%x_%A_%a.out
+#SBATCH --error=results/pggb/logs/%x_%A_%a.err
+#SBATCH --mem=24G
 #SBATCH --cpus-per-task=32
 #SBATCH --time=12:00:00
 
-CHR=${1:?give a chromosome name, e.g. chr01}
-SIF=${2:?give the absolute path to pggb_latest.sif}
+SIF=${1:?give the absolute path to pggb_latest.sif}
+
+CHRS=($(ls data/input/*.fa.gz | xargs -n1 basename | sed 's/\.fa\.gz$//'))
+CHR=${CHRS[$((SLURM_ARRAY_TASK_ID - 1))]}
 
 singularity exec "$SIF" pggb \
   -i "data/input/${CHR}.fa.gz" \
@@ -444,12 +446,17 @@ singularity exec "$SIF" pggb \
 
 ```bash
 mkdir -p results/pggb/logs
-for CHR in $(ls data/input/*.fa.gz | xargs -n1 basename | sed 's/\.fa\.gz$//'); do
-  sbatch run_pggb_chr.sbatch "$CHR" "$SIF"
-done
+N=$(ls data/input/*.fa.gz | wc -l)
+sbatch --array=1-${N}%3 run_pggb_array.sbatch "$SIF"
 ```
 
-Expect 8-12 hours of wall-clock time.
+**`%3` caps how many tasks run at once.** Launching all nine together asks for 9 × 32 = 288 CPUs simultaneously, which on a shared cluster will simply sit in the queue. Set it to whatever your allocation allows.
+
+**`--mem` is shared by every task in the array**, so size it for the heaviest chromosome. The measurements in §5.7.5 top out at 18 GB for chr03, hence 24 GB.
+
+> If you do want per-chromosome resource requests — for instance where your site penalises large memory requests — submit one `sbatch` per chromosome instead of using `--array`. Within the range measured here, there is no need to.
+
+Expect 8-12 hours of wall-clock time (on the environment described in §5.7.5).
 
 ### 5.7.5 Time and memory guide (32 CPU)
 
@@ -490,7 +497,7 @@ results/pggb/chr09/
 
 ## 5.9 Reusing the alignment — impg
 
-Everything above runs **PGGB on its own**. Current large-scale pangenome construction — the HPRC release 2 build, for instance — instead **pairs PGGB with [impg](https://github.com/pangenome/impg)**. We do not run it here, but the idea is worth knowing.
+Everything above runs **PGGB on its own**. Current large-scale pangenome construction — the HPRC release 2 build, for instance — **has adopted the combination of PGGB and [impg](https://github.com/pangenome/impg)**. We do not run it here, but the idea is worth knowing.
 
 ### What it does
 
