@@ -167,33 +167,40 @@ citrus-pangenome-tutorial/
 └── LICENSE
 ```
 
-**追加で作成するのは `data/` ディレクトリだけ**です。ここに各品種のアセンブリを配置します:
+**追加で作成するのは `data/raw/` ディレクトリだけ**です。ここに各品種のアセンブリを配置します:
 
 ```bash
-mkdir -p data/{CUN,CKI,CKU}
+mkdir -p data/raw/{CUN,CKI,CKU}
 ```
 
-Pangenome の中間ファイルや出力(`03_pangenome/` など)は、後続のスクリプトが自動で作成します。
+`data/input/`(整形済みの入力)と `results/`(解析の出力)は、後続のスクリプトが自動で作成します。
+
+**`data/raw/` は一度置いたら触りません。** 以降のステップが書き込むのは `data/input/` と `results/` だけなので、途中でやり直したくなったらそのどちらかを消せば済みます。
 
 推奨する構成:
 
 ```
 citrus-pangenome-tutorial/
 ├── ...(clone時のファイル)
-├── data/                          # ★ ダウンロードしたアセンブリ(あなたが用意)
-│   ├── CUN/
-│   │   ├── CUNphKu_r1.0.ch1-9.fasta.gz   # → CUN#1
-│   │   └── CUNphKi_r1.0.pmol.fasta.gz   # → CUN#2
-│   ├── CKI/
-│   │   ├── CKIhap1_r1.0.pmol.fasta.gz
-│   │   └── CKIhap2_r1.0.pmol.fasta.gz
-│   └── CKU/
-│       ├── CKUhap1_r1.0.pmol.fasta.gz
-│       └── CKUhap2_r1.0.pmol.fasta.gz
-└── 03_pangenome/                  # ★ 後続スクリプトが作成
-    ├── by_chr/
-    ├── qc/
-    └── logs/
+├── data/
+│   ├── raw/                       # ★ 配布物をそのまま置く(あなたが用意・以後不変)
+│   │   ├── CUN/
+│   │   │   ├── CUNphKu_r1.0.ch1-9.fasta.gz   # → CUN#1
+│   │   │   └── CUNphKi_r1.0.pmol.fasta.gz    # → CUN#2
+│   │   ├── CKI/
+│   │   │   ├── CKIhap1_r1.0.pmol.fasta.gz
+│   │   │   └── CKIhap2_r1.0.pmol.fasta.gz
+│   │   └── CKU/
+│   │       ├── CKUhap1_r1.0.pmol.fasta.gz
+│   │       └── CKUhap2_r1.0.pmol.fasta.gz
+│   └── input/                     # 第5章の前処理が作る(PanSN 済み・染色体別)
+│       └── chr01.fa.gz … chr09.fa.gz
+├── results/                       # 解析の出力(スクリプトが作る)
+│   ├── qc/                        # 第4章: アセンブリ統計
+│   ├── pggb/                      # 第5章: 染色体ごとの graph
+│   ├── graph_qc/                  # 第6章
+│   └── viz/                       # 第7章
+└── bin/                           # Singularity wrapper(任意、第5章)
 ```
 
 ---
@@ -214,7 +221,7 @@ bash scripts/download_plantgarden.sh data/
 
 このスクリプトは以下を実行します:
 1. Plant GARDEN の対象URLから 6 つのアセンブリファイルをダウンロード
-2. `data/{CUN,CKI,CKU}/` に配置
+2. `data/raw/{CUN,CKI,CKU}/` に配置
 3. sha256 チェックサムで整合性検証(オプション)
 
 ### 3.6.3 期待されるファイルサイズ
@@ -239,9 +246,9 @@ bash scripts/download_plantgarden.sh data/
 
 ```tsv
 sample_id	cultivar_jp	species	pansn_prefix	hap1_path	hap2_path	source	pedigree
-CUN	温州みかん	Citrus unshiu	CUN	data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz	data/CUN/CUNphKi_r1.0.pmol.fasta.gz	Plant GARDEN t55188.G004/G003	F1: CKI × CKU
-CKI	紀州みかん	Citrus kinokuni	CKI	data/CKI/CKIhap1_r1.0.pmol.fasta.gz	data/CKI/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488.G002/G003	温州の母親
-CKU	九年母	Citrus nobilis	CKU	data/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/CKU/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549.G002/G003	温州の父親
+CUN	温州みかん	Citrus unshiu	CUN	data/raw/CUN/CUNphKu_r1.0.ch1-9.fasta.gz	data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz	Plant GARDEN t55188.G004/G003	F1: CKI × CKU
+CKI	紀州みかん	Citrus kinokuni	CKI	data/raw/CKI/CKIhap1_r1.0.pmol.fasta.gz	data/raw/CKI/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488.G002/G003	温州の母親
+CKU	九年母	Citrus nobilis	CKU	data/raw/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/raw/CKU/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549.G002/G003	温州の父親
 ```
 
 **列の意味**:
@@ -263,10 +270,10 @@ CKU	九年母	Citrus nobilis	CKU	data/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/CKU/CK
 
 ```bash
 # ファイルサイズと有無を確認
-ls -la data/*/*.fasta.gz
+ls -la data/raw/*/*.fasta.gz
 
 # 各 FASTA の中身をちらっと見る
-zcat data/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
+zcat data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
 
 # 期待される出力例:
 # >CUNphKi_r1.0ch1

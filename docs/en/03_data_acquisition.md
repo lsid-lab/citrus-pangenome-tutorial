@@ -167,33 +167,38 @@ citrus-pangenome-tutorial/
 └── LICENSE
 ```
 
-**The only directory you need to create is `data/`**, where the assemblies will be placed:
+**The only directory you need to create is `data/raw/`**, where the assemblies go:
 
 ```bash
-mkdir -p data/CUN data/CKI data/CKU
+mkdir -p data/raw/CUN data/raw/CKI data/raw/CKU
 ```
 
-Intermediate files and outputs (`03_pangenome/`, etc.) are created automatically by subsequent scripts.
+Intermediate files and outputs (`results/`, etc.) are created automatically by subsequent scripts.
 
 Recommended layout:
 
 ```
 citrus-pangenome-tutorial/
-├── ...(files present at clone time)
-├── data/                              # (you provide) Downloaded assemblies
-│   ├── CUN/
-│   │   ├── CUNphKu_r1.0.ch1-9.fasta.gz   # → CUN#1
-│   │   └── CUNphKi_r1.0.pmol.fasta.gz   # → CUN#2
-│   ├── CKI/
-│   │   ├── CKIhap1_r1.0.pmol.fasta.gz
-│   │   └── CKIhap2_r1.0.pmol.fasta.gz
-│   └── CKU/
-│       ├── CKUhap1_r1.0.pmol.fasta.gz
-│       └── CKUhap2_r1.0.pmol.fasta.gz
-└── 03_pangenome/                      # (created by later scripts)
-    ├── by_chr/
-    ├── qc/
-    └── logs/
+├── ... (files from the clone)
+├── data/
+│   ├── raw/                       # * The distributed files, untouched (you provide these)
+│   │   ├── CUN/
+│   │   │   ├── CUNphKu_r1.0.ch1-9.fasta.gz   # -> CUN#1
+│   │   │   └── CUNphKi_r1.0.pmol.fasta.gz    # -> CUN#2
+│   │   ├── CKI/
+│   │   │   ├── CKIhap1_r1.0.pmol.fasta.gz
+│   │   │   └── CKIhap2_r1.0.pmol.fasta.gz
+│   │   └── CKU/
+│   │       ├── CKUhap1_r1.0.pmol.fasta.gz
+│   │       └── CKUhap2_r1.0.pmol.fasta.gz
+│   └── input/                     # Built by the Chapter 5 preprocessing (PanSN, per chromosome)
+│       └── chr01.fa.gz ... chr09.fa.gz
+├── results/                       # Analysis outputs (created by the scripts)
+│   ├── qc/                        # Chapter 4: assembly statistics
+│   ├── pggb/                      # Chapter 5: per-chromosome graphs
+│   ├── graph_qc/                  # Chapter 6
+│   └── viz/                       # Chapter 7
+└── bin/                           # Singularity wrappers (optional, Chapter 5)
 ```
 
 ---
@@ -214,7 +219,7 @@ bash scripts/download_plantgarden.sh data/
 
 This script:
 1. Downloads the six assemblies from Plant GARDEN
-2. Places them under `data/{CUN,CKI,CKU}/`
+2. Places them under `data/raw/{CUN,CKI,CKU}/`
 3. (Optionally) verifies integrity with SHA256 checksums
 
 ### 3.6.3 Expected file sizes
@@ -239,9 +244,9 @@ Contents of `tables/samplesheet.tsv`:
 
 ```tsv
 sample_id  cultivar_jp  species          pansn_prefix  hap1_path                                        hap2_path                                          source                            pedigree
-CUN        Satsuma      Citrus unshiu    CUN       data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz        data/CUN/CUNphKi_r1.0.pmol.fasta.gz           Plant GARDEN t55188.G004/G003    F1: CKI x CKU
-CKI        Kishu        Citrus kinokuni  CKI         data/CKI/CKIhap1_r1.0.pmol.fasta.gz           data/CKI/CKIhap2_r1.0.pmol.fasta.gz             Plant GARDEN t408488             mother of CUN
-CKU        Kunenbo      Citrus nobilis   CKU       data/CKU/CKUhap1_r1.0.pmol.fasta.gz         data/CKU/CKUhap2_r1.0.pmol.fasta.gz           Plant GARDEN t481549             father of CUN
+CUN        Satsuma      Citrus unshiu    CUN       data/raw/CUN/CUNphKu_r1.0.ch1-9.fasta.gz        data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz           Plant GARDEN t55188.G004/G003    F1: CKI x CKU
+CKI        Kishu        Citrus kinokuni  CKI         data/raw/CKI/CKIhap1_r1.0.pmol.fasta.gz           data/raw/CKI/CKIhap2_r1.0.pmol.fasta.gz             Plant GARDEN t408488             mother of CUN
+CKU        Kunenbo      Citrus nobilis   CKU       data/raw/CKU/CKUhap1_r1.0.pmol.fasta.gz         data/raw/CKU/CKUhap2_r1.0.pmol.fasta.gz           Plant GARDEN t481549             father of CUN
 ```
 
 **Column meanings**:
@@ -263,10 +268,10 @@ Once downloads complete, verify:
 
 ```bash
 # File sizes and presence
-ls -la data/*/*.fasta.gz
+ls -la data/raw/*/*.fasta.gz
 
 # Peek at each FASTA
-zcat data/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
+zcat data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz | head -3
 
 # Expected output:
 # >CUNphKi_r1.0ch1

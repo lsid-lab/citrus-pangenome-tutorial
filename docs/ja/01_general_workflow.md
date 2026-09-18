@@ -294,7 +294,7 @@ eukaryota  →  viridiplantae  →  embryophyta  →  eudicots
 の順に specific になっていきます。**Rutaceae やムクロジ目 (Sapindales) に特化したデータセットは用意されていない**ため、柑橘で選ぶべきは最も下位にある **`eudicots_odb10`** です。`brassicales`(アブラナ目)や `fabales`(マメ目)といった目レベルのデータセットも存在しますが、**柑橘はそれらに含まれないので選んではいけません**。「より specific なら何でも良い」のではなく、**対象生物を含んでいることが大前提**です。
 
 ```bash
-busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
+busco -i data/raw/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
       -l eudicots_odb10 -c 16 -o busco/CUN_hap2
 ```
 

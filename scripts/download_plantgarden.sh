@@ -13,7 +13,7 @@
 # Usage:
 #   bash download_plantgarden.sh [output_directory]
 #
-#   Default output directory is ./data
+#   Default output directory is ./data/raw
 #
 # Notes:
 #   - Each file is approximately 90-105 MB (bgzip-compressed FASTA).
@@ -22,7 +22,7 @@
 
 set -euo pipefail
 
-OUT="${1:-./data}"
+OUT="${1:-./data/raw}"
 mkdir -p "$OUT/CUN" "$OUT/CKI" "$OUT/CKU"
 
 BASE="https://plantgarden.jp/ja/download"

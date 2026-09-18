@@ -74,7 +74,8 @@ mamba activate citrus-pg
 
 ```bash
 wget https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz
-tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
+mkdir -p bin && tar xzf seqkit_linux_amd64.tar.gz && mv seqkit bin/
+export PATH="$PWD/bin:$PATH"
 ```
 
 > The PGGB toolchain used from Chapter 5 onward is installed as a **Singularity image**, not via conda (§5.5, `scripts/setup_singularity_wrappers.sh`). Conda here covers only this chapter's QC tools.
@@ -82,7 +83,7 @@ tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
 ### Running it
 
 ```bash
-seqkit stats -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz
+seqkit stats -a data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz
 ```
 
 The `-a` (all) flag adds N50 and other details.
@@ -209,7 +210,7 @@ Looking at **per-sequence GC** is more informative than the global figure:
 
 ```bash
 # name / length / GC% for each sequence
-seqkit fx2tab -nlg data/CUN/CUNphKi_r1.0.pmol.fasta.gz
+seqkit fx2tab -nlg data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz
 ```
 
 **A single sequence far off the rest** points to contamination — bacteria, organelles, or another species. (Organellar genomes differ in GC from the nuclear genome, so this catches them.)
@@ -254,7 +255,7 @@ compleasm download eudicots_odb10
 
 ```bash
 # compleasm (faster than BUSCO)
-compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
+compleasm run -a data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz \
               -o busco/CUN_hap2 \
               -l eudicots_odb10 \
               -t 16

@@ -74,7 +74,8 @@ mamba activate citrus-pg
 
 ```bash
 wget https://github.com/shenwei356/seqkit/releases/download/v2.10.0/seqkit_linux_amd64.tar.gz
-tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
+mkdir -p bin && tar xzf seqkit_linux_amd64.tar.gz && mv seqkit bin/
+export PATH="$PWD/bin:$PATH"
 ```
 
 > 第5章以降で使う PGGB 一式は conda ではなく **Singularity イメージ**で導入します(§5.5、`scripts/setup_singularity_wrappers.sh`)。conda で入れるのは、この章の QC ツールまでです。
@@ -82,7 +83,7 @@ tar xzf seqkit_linux_amd64.tar.gz && mv seqkit ~/bin/
 ### 実行
 
 ```bash
-seqkit stats -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz
+seqkit stats -a data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz
 ```
 
 `-a` (all) オプションで N50 などの詳細も出ます。
@@ -209,7 +210,7 @@ GC 含量も種ごとに大きく違います —— 柑橘 ~35%、ヒト ~41%�
 
 ```bash
 # 配列ごとに 名前 / 長さ / GC% を出す
-seqkit fx2tab -nlg data/CUN/CUNphKi_r1.0.pmol.fasta.gz
+seqkit fx2tab -nlg data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz
 ```
 
 **1 本だけ極端に外れた配列**があれば、細菌・オルガネラ・別種のコンタミネーションを疑います(オルガネラゲノムは核ゲノムと GC が異なるので、この方法で見つかります)。
@@ -254,7 +255,7 @@ compleasm download eudicots_odb10
 
 ```bash
 # compleasm (BUSCO より高速)
-compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
+compleasm run -a data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz \
               -o busco/CUN_hap2 \
               -l eudicots_odb10 \
               -t 16

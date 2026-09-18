@@ -30,11 +30,12 @@
 set -euo pipefail
 
 # Ensure seqkit is in PATH (either from ~/bin or a local install)
-export PATH="${HOME}/bin:/home/claude/bin:${PATH}"
-
 SAMPLESHEET="${1:?samplesheet.tsv path required}"
 PROJECT="${2:-.}"
-OUT="${PROJECT}/qc"
+
+# Project-local wrapper directory (see setup_singularity_wrappers.sh).
+export PATH="${PROJECT}/bin:${PATH}"
+OUT="${PROJECT}/results/qc"
 mkdir -p "$OUT"
 
 SUMMARY="${OUT}/stats_summary.tsv"

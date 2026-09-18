@@ -14,9 +14,16 @@
 #   -p 95     : percent identity threshold
 #   -s 10000  : segment length (bp)
 #   -n 6      : number of haplotypes (3 cultivars x 2 hap)
-#   -V 'CUN#1:#' : VCF coordinate reference = CUN#1 (CUNphKu, Kunenbo-derived)
-#   -Y '#'    : PanSN separator
+#   -V CUN#1  : emit a VCF using CUN#1 as the coordinate reference.
+#               The spec is REF[:LEN]; pggb appends the PanSN '#' to REF itself,
+#               so 'CUN#1' yields `vg deconstruct -P CUN#1#`. A numeric LEN would
+#               additionally emit a vcfbub/vcfwave-decomposed VCF; we do not use it.
 #   -B 1G     : seqwish transclose batch size (see NOTE below)
+#
+#   -Y is left at its default. It is --exclude-delim (wfmash --group-prefix):
+#   skip mappings whose query and target share the prefix before the LAST
+#   occurrence of the character. With full PanSN names the group is
+#   'sample#hap', so CUN#1 and CUN#2 are still aligned to each other.
 #
 # NOTE on -B:
 #   In the PGGB Singularity image (revision 4225c6c), the default -B value
@@ -25,7 +32,11 @@
 #   Verify with .params.yml -> transclose-batch: 1000000000 after run.
 #
 # Usage:
-#   bash pg02_run_pggb.sh . [threads] [start_chr] [end_chr]
+#   bash pg02_run_pggb.sh . [threads] [chr ...]
+#
+#   With no chromosomes named, every data/input/chr*.fa.gz is processed.
+#   This script is a convenience wrapper for running all chromosomes; the
+#   pggb command line it builds is spelled out in docs section 5.7.
 
 # NOTE: -e is intentionally omitted so that a failure in one chromosome
 # does not abort processing of the others.
@@ -33,19 +44,43 @@ set -uo pipefail
 
 PROJECT="${1:-.}"
 THREADS="${2:-32}"
-START_CHR="${3:-chr01}"
-END_CHR="${4:-chr09}"
+shift 2 2>/dev/null || true
 
-BY_CHR="${PROJECT}/03_pangenome/by_chr"
-LOGS="${PROJECT}/03_pangenome/logs"
+INPUT_DIR="${PROJECT}/data/input"
+PGGB_OUT="${PROJECT}/results/pggb"
+LOGS="${PGGB_OUT}/logs"
 mkdir -p "$LOGS"
+
+# Chromosomes to process: the ones named on the command line, or otherwise
+# every prepared input in data/input. Nothing about "chr01..chr09" is assumed.
+if [[ $# -gt 0 ]]; then
+  CHRS=("$@")
+else
+  CHRS=()
+  for f in "$INPUT_DIR"/*.fa.gz "$INPUT_DIR"/*.fa; do
+    [[ -e "$f" ]] || continue
+    b=$(basename "$f"); b=${b%.gz}; b=${b%.fa}
+    CHRS+=("$b")
+  done
+  # de-duplicate (a chromosome may exist as both .fa and .fa.gz)
+  if [[ ${#CHRS[@]} -gt 0 ]]; then
+    mapfile -t CHRS < <(printf '%s\n' "${CHRS[@]}" | sort -u)
+  fi
+fi
+
+if [[ ${#CHRS[@]} -eq 0 ]]; then
+  echo "ERROR: no input FASTA found in $INPUT_DIR"
+  echo "       Run pg01_prepare_input.sh first."
+  exit 1
+fi
+echo "Chromosomes to process: ${CHRS[*]}"
 
 # ---------- PGGB parameters (tuned for Citrus 3-cultivar dataset) ----------
 PARAM_p=95
 PARAM_s=10000
 PARAM_n=6
 PARAM_B=1G       # Must be explicitly set (see NOTE in header)
-PARAM_V='CUN#1:#'
+PARAM_V='CUN#1'
 
 # ===================================================================
 # Phase 0: Preflight checks
@@ -86,13 +121,13 @@ else
   echo "  OK: samtools ($(samtools --version 2>&1 | head -1))"
 fi
 
-if [[ ! -d "$BY_CHR" ]]; then
-  echo "  MISSING: input directory $BY_CHR"
+if [[ ! -d "$INPUT_DIR" ]]; then
+  echo "  MISSING: input directory $INPUT_DIR"
   echo "    Run pg01_prepare_input.sh first."
   PREFLIGHT_OK=0
 else
-  N_INPUTS=$(ls "$BY_CHR"/chr*.fa "$BY_CHR"/chr*.fa.gz 2>/dev/null | wc -l)
-  echo "  OK: input directory $BY_CHR ($N_INPUTS files detected)"
+  N_INPUTS=$(ls "$INPUT_DIR"/*.fa "$INPUT_DIR"/*.fa.gz 2>/dev/null | wc -l)
+  echo "  OK: input directory $INPUT_DIR ($N_INPUTS files detected)"
 fi
 
 if [[ $PREFLIGHT_OK -ne 1 ]]; then
@@ -117,9 +152,9 @@ echo ""
 # ===================================================================
 echo "-- Validate input FASTA and auto-bgzip if needed --"
 
-for CHR in $(seq -f "chr%02g" $(echo $START_CHR | sed 's/chr0*//') $(echo $END_CHR | sed 's/chr0*//')); do
-  IN_FA_GZ="$BY_CHR/${CHR}.fa.gz"
-  IN_FA="$BY_CHR/${CHR}.fa"
+for CHR in "${CHRS[@]}"; do
+  IN_FA_GZ="$INPUT_DIR/${CHR}.fa.gz"
+  IN_FA="$INPUT_DIR/${CHR}.fa"
   
   if [[ -f "$IN_FA_GZ" && -f "${IN_FA_GZ}.fai" ]]; then
     echo "  OK: $CHR (bgzip+index ready)"
@@ -160,9 +195,9 @@ SUCCESS=0
 FAILED=0
 SKIPPED=0
 
-for CHR in $(seq -f "chr%02g" $(echo $START_CHR | sed 's/chr0*//') $(echo $END_CHR | sed 's/chr0*//')); do
-  IN_FA_GZ="$BY_CHR/${CHR}.fa.gz"
-  OUT_DIR="$BY_CHR/${CHR}_pggb"
+for CHR in "${CHRS[@]}"; do
+  IN_FA_GZ="$INPUT_DIR/${CHR}.fa.gz"
+  OUT_DIR="$PGGB_OUT/${CHR}"
   
   if [[ ! -f "$IN_FA_GZ" ]]; then
     echo "[SKIP] $CHR: input file missing"
@@ -194,7 +229,6 @@ for CHR in $(seq -f "chr%02g" $(echo $START_CHR | sed 's/chr0*//') $(echo $END_C
     -n "$PARAM_n" \
     -B "$PARAM_B" \
     -V "$PARAM_V" \
-    -Y "#" \
     -t "$THREADS" \
     -m \
     -S \
@@ -225,8 +259,8 @@ echo "  skipped  : $SKIPPED"
 echo ""
 echo "  Per-chromosome status:"
 
-for CHR in $(seq -f "chr%02g" 1 9); do
-  OUT_DIR="$BY_CHR/${CHR}_pggb"
+for CHR in "${CHRS[@]}"; do
+  OUT_DIR="$PGGB_OUT/${CHR}"
   FINAL_OG=$(ls "$OUT_DIR/${CHR}.fa.gz."*.smooth.final.og 2>/dev/null | head -1)
   FINAL_GFA=$(ls "$OUT_DIR/${CHR}.fa.gz."*.smooth.final.gfa 2>/dev/null | head -1)
   

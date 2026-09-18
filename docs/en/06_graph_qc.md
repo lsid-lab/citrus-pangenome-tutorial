@@ -67,7 +67,7 @@ compression ratio = graph_bp / input_bp
 Verify the version-dependent `-B` behavior mentioned in §5.5.3:
 
 ```bash
-grep transclose-batch 03_pangenome/by_chr/chr09_pggb/*.params.yml
+grep transclose-batch results/pggb/chr09/*.params.yml
 ```
 
 Expected:

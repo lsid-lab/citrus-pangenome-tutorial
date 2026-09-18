@@ -25,8 +25,9 @@ set -uo pipefail
 PROJECT="${1:-.}"
 CHR_FILTER="${2:-all}"
 
-BY_CHR="${PROJECT}/03_pangenome/by_chr"
-QC_OUT="${PROJECT}/03_pangenome/qc"
+INPUT_DIR="${PROJECT}/data/input"
+PGGB_OUT="${PROJECT}/results/pggb"
+QC_OUT="${PROJECT}/results/graph_qc"
 mkdir -p "$QC_OUT"
 
 echo "======================================================================"
@@ -81,7 +82,7 @@ SUMMARY_TSV="${QC_OUT}/graph_qc_summary.tsv"
 printf "chr\tinput_bp\tnode_count\tedge_count\tpath_count\tgraph_bp\tinflation\tpath_length_ok\tSV_count\tverdict\n" > "$SUMMARY_TSV"
 
 CHROMS_TO_PROCESS=()
-for CHR_DIR in "$BY_CHR"/chr*_pggb; do
+for CHR_DIR in "$PGGB_OUT"/*/; do
   [[ ! -d "$CHR_DIR" ]] && continue
   CHR=$(basename "$CHR_DIR" | sed 's/_pggb//')
   [[ "$CHR_FILTER" != "all" && "$CHR_FILTER" != "$CHR" ]] && continue
@@ -101,11 +102,11 @@ echo ""
 # QC loop per chromosome
 # ===================================================================
 for CHR in "${CHROMS_TO_PROCESS[@]}"; do
-  CHR_DIR="$BY_CHR/${CHR}_pggb"
+  CHR_DIR="$PGGB_OUT/${CHR}"
   # PGGB output filenames embed parameter hashes
   OG=$(ls "$CHR_DIR/${CHR}.fa.gz."*.smooth.final.og 2>/dev/null | head -1)
   GFA=$(ls "$CHR_DIR/${CHR}.fa.gz."*.smooth.final.gfa 2>/dev/null | head -1)
-  IN_FA="$BY_CHR/${CHR}.fa.gz"
+  IN_FA="$INPUT_DIR/${CHR}.fa.gz"
 
   if [[ -z "$OG" || ! -f "$OG" ]]; then
     echo "[SKIP] $CHR: OG file not found (pg02 incomplete or naming mismatch)"

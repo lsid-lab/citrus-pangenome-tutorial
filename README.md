@@ -52,9 +52,16 @@ citrus-pangenome-tutorial/
 │   ├── pg02_run_pggb.sh
 │   ├── pg03_qc_graph.sh
 │   └── pg04_visualize.sh
-└── tables/
-    ├── samplesheet.tsv
-    └── assembly_provenance_v1_v2.tsv
+├── tables/
+│   ├── samplesheet.tsv
+│   └── assembly_provenance_v1_v2.tsv
+│
+│   # --- created as you work through the tutorial (all git-ignored) ---
+├── data/
+│   ├── raw/                     # downloaded assemblies, left untouched
+│   └── input/                   # PanSN-normalised, one FASTA per chromosome
+├── results/                     # qc/ pggb/ graph_qc/ viz/
+└── bin/                         # Singularity wrappers (optional)
 ```
 
 ### Prerequisites
@@ -151,9 +158,16 @@ citrus-pangenome-tutorial/
 │   ├── pg02_run_pggb.sh
 │   ├── pg03_qc_graph.sh
 │   └── pg04_visualize.sh
-└── tables/
-    ├── samplesheet.tsv
-    └── assembly_provenance_v1_v2.tsv
+├── tables/
+│   ├── samplesheet.tsv
+│   └── assembly_provenance_v1_v2.tsv
+│
+│   # --- created as you work through the tutorial (all git-ignored) ---
+├── data/
+│   ├── raw/                     # downloaded assemblies, left untouched
+│   └── input/                   # PanSN-normalised, one FASTA per chromosome
+├── results/                     # qc/ pggb/ graph_qc/ viz/
+└── bin/                         # Singularity wrappers (optional)
 ```
 
 ### 前提となる計算環境

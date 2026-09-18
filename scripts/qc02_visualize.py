@@ -7,7 +7,7 @@ Reads stats_summary.tsv and produces a single overview PNG suitable for
 reports or tutorial figures.
 
 Usage:
-    python3 qc02_visualize.py qc/stats_summary.tsv qc/qc_overview.png
+    python3 qc02_visualize.py results/qc/stats_summary.tsv results/qc/qc_overview.png
 """
 import sys
 import pandas as pd

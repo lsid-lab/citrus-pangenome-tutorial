@@ -67,7 +67,7 @@ Level 1 で最も重要なのは**圧縮率**です:
 第5章 §5.5.3 で触れた、特定バージョンの PGGB での `-B` 挙動を確認します:
 
 ```bash
-grep transclose-batch 03_pangenome/by_chr/chr09_pggb/*.params.yml
+grep transclose-batch results/pggb/chr09/*.params.yml
 ```
 
 期待:

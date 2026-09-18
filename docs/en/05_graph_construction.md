@@ -281,7 +281,7 @@ This script:
 3. Groups sequences by chromosome
 4. bgzip compresses and creates `.fai` indexes
 
-Output: `03_pangenome/by_chr/chr01.fa.gz` .. `chr09.fa.gz`
+Output: `data/input/chr01.fa.gz` .. `chr09.fa.gz`
 
 Each per-chromosome FASTA contains **exactly six sequences** (3 cultivars × 2 haps).
 
@@ -349,7 +349,7 @@ These are collaborator-measured values. Peak memory is at most ~18 GB, so `--mem
 For each chromosome (chr09 example):
 
 ```
-03_pangenome/by_chr/chr09_pggb/
+results/pggb/chr09/
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.gfa    ← final graph (GFA)
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.og     ← odgi format
 ├── chr09.fa.gz.<h1>.<h2>.<h3>.smooth.final.CUN#1.vcf  ← VCF

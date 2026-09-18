@@ -293,7 +293,7 @@ eukaryota  →  viridiplantae  →  embryophyta  →  eudicots
 There is **no dataset specific to Rutaceae or Sapindales**, so the right choice for citrus is the deepest available one, **`eudicots_odb10`**. Order-level datasets such as `brassicales` or `fabales` do exist, but **citrus does not belong to those orders, so they must not be used**. "More specific is better" only holds as long as the dataset actually **contains your organism**.
 
 ```bash
-busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
+busco -i data/raw/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
       -l eudicots_odb10 -c 16 -o busco/CUN_hap2
 ```
 

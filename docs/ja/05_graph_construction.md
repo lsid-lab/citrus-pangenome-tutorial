@@ -191,7 +191,7 @@ PGGB は 3 段のパイプラインです:
 
 **将来のバージョン**では改善される可能性があります。実行後には第6章で `.params.yml` の `transclose-batch` 値を確認する習慣をつけましょう(第6章 §6.2.3)。
 
-このバグの発見と記録は、共同研究者 町田 修斗による綿密な診断実験の成果です。
+このバグの発見と記録は、共同研究者 町田 宗聡による綿密な診断実験の成果です。
 
 ---
 
@@ -283,7 +283,7 @@ bash scripts/pg01_prepare_input.sh tables/samplesheet.tsv .
 3. 染色体別に FASTA を分割
 4. bgzip 圧縮 + samtools faidx
 
-出力: `03_pangenome/by_chr/chr01.fa.gz` 〜 `chr09.fa.gz`
+出力: `data/input/chr01.fa.gz` 〜 `chr09.fa.gz`
 
 各 FASTA には**きっちり 6 配列**(3 品種 × 2 hap)が含まれます。
 
@@ -351,7 +351,7 @@ done
 各染色体で以下が生成されます (chr09 の例):
 
 ```
-03_pangenome/by_chr/chr09_pggb/
+results/pggb/chr09/
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.gfa    ← 最終 graph (GFA)
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.og     ← odgi 形式
 ├── chr09.fa.gz.<hash1>.<hash2>.<hash3>.smooth.final.CUN#1.vcf  ← VCF

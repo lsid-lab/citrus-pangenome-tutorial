@@ -20,19 +20,37 @@
 #     sample_id, cultivar_jp, species, pansn_prefix, hap1_path, hap2_path, source, pedigree
 #
 # Output:
-#   03_pangenome/by_chr/chr01.fa.gz .. chr09.fa.gz
+#   data/input/chr01.fa.gz .. chr09.fa.gz
 #
 # Usage:
 #   bash pg01_prepare_input.sh tables/samplesheet.tsv .
 
 set -euo pipefail
 
-export PATH="${HOME}/bin:/home/claude/bin:${PATH}"
-
 SAMPLESHEET="${1:?samplesheet.tsv required}"
 PROJECT="${2:-.}"
-OUT="${PROJECT}/03_pangenome/by_chr"
+
+# Project-local wrapper directory (see setup_singularity_wrappers.sh).
+export PATH="${PROJECT}/bin:${PATH}"
+OUT="${PROJECT}/data/input"
 mkdir -p "$OUT"
+
+# ---------- Preflight ----------
+# These are required, not optional. Previously a missing bgzip or samtools was
+# skipped silently, and the run "succeeded" while producing no .fa.gz / .fai -
+# which then failed much later, inside pggb.
+MISSING=()
+for TOOL in seqkit bgzip samtools; do
+  command -v "$TOOL" &>/dev/null || MISSING+=("$TOOL")
+done
+if [[ ${#MISSING[@]} -gt 0 ]]; then
+  echo "ERROR: required tool(s) not found: ${MISSING[*]}"
+  echo ""
+  echo "  seqkit            : mamba install -c conda-forge -c bioconda seqkit"
+  echo "  bgzip, samtools   : mamba install -c conda-forge -c bioconda htslib samtools"
+  echo "  (or put the Singularity wrappers on PATH: export PATH=\"\$PWD/bin:\$PATH\")"
+  exit 1
+fi
 
 echo "======================================================================"
 echo " PGGB Step 1: Input preparation (PanSN renaming + chromosome normalization)"
@@ -233,11 +251,12 @@ for CHR in chr01 chr02 chr03 chr04 chr05 chr06 chr07 chr08 chr09; do
     seqkit seq -n "$OUT_FA" | sed 's/^/      /'
   fi
 
-  # bgzip compression + faidx indexing (if tools available)
+  # bgzip compression + faidx indexing.
+  # Presence of both tools was checked up front, so a failure here is real.
   if command -v bgzip &>/dev/null; then
     bgzip -f "$OUT_FA"
     if command -v samtools &>/dev/null; then
-      samtools faidx "$OUT_FA.gz" 2>/dev/null || true
+      samtools faidx "$OUT_FA.gz"
     fi
   fi
 done
