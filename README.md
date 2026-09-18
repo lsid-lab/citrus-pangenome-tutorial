@@ -33,6 +33,7 @@ A hands-on tutorial for constructing a pangenome graph from haplotype-resolved a
 | [5](docs/en/05_graph_construction.md) | Graph construction | Tool comparison (minigraph / MC / PGGB), running PGGB |
 | [6](docs/en/06_graph_qc.md) | Graph QC | 4-level evaluation, compression ratio, transclose-batch check |
 | [7](docs/en/07_graph_interpretation.md) | Graph interpretation | VCF, visualization, pedigree verification |
+| [A](docs/en/appendix_minigraph_cactus.md) | *Appendix*: Minigraph-Cactus | The same data through MC (untested) |
 
 ### Repository layout
 
@@ -139,6 +140,7 @@ Issues and Pull Requests are welcome. Corrections, translation contributions, an
 | [5](docs/ja/05_graph_construction.md) | Pangenome-graph 構築 | 手法比較(minigraph / MC / PGGB)、PGGB 実行 |
 | [6](docs/ja/06_graph_qc.md) | グラフの QC | 4層の品質評価、圧縮率、transclose-batchの確認 |
 | [7](docs/ja/07_graph_interpretation.md) | グラフの解釈 | VCF 読み、可視化、pedigree 確認 |
+| [付](docs/ja/appendix_minigraph_cactus.md) | *付録*: Minigraph-Cactus | 同じデータを MC で扱う手順(未検証) |
 
 ### リポジトリ構成
 

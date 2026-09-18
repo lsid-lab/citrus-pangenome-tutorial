@@ -169,7 +169,7 @@ The rGFA emitted by minigraph is a **strict subset** of GFA:
 - Overlaps between segments are **not allowed**
 - There are **no `P` lines and no `W` lines**
 
-In other words, rGFA expresses position as "**which coordinate of the reference does this correspond to**" rather than "which sample traversed which way" — a **reference-centric** design (it may help to think of the "structural backbone" sense of *reference*, discussed in §5.2, being baked into the file format itself). Consequently you cannot directly run path-based odgi analyses or `vg deconstruct` VCF calling on an rGFA.
+In other words, rGFA expresses position as "**which coordinate of the reference does this correspond to**" rather than "which sample traversed which way" — a **reference-centric** design — it may help to think of the decision to build around a reference as being baked into the file format itself. Consequently you cannot directly run path-based odgi analyses or `vg deconstruct` VCF calling on an rGFA.
 
 **Practical note: MC graphs may need a downgrade**
 

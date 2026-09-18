@@ -29,7 +29,7 @@
 
 set -euo pipefail
 
-# Ensure seqkit is in PATH (either from ~/bin or a local install)
+# Ensure seqkit is in PATH (project-local ./bin, or a system install)
 SAMPLESHEET="${1:?samplesheet.tsv path required}"
 PROJECT="${2:-.}"
 
