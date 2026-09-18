@@ -77,7 +77,7 @@ citrus-pangenome-tutorial/
 
 ```bash
 # 1. Clone
-git clone https://github.com/<user>/citrus-pangenome-tutorial.git
+git clone https://github.com/lsid-lab/citrus-pangenome-tutorial.git
 cd citrus-pangenome-tutorial
 
 # 2. Follow the tutorial
@@ -175,7 +175,7 @@ citrus-pangenome-tutorial/
 
 ```bash
 # 1. Clone
-git clone https://github.com/<user>/citrus-pangenome-tutorial.git
+git clone https://github.com/lsid-lab/citrus-pangenome-tutorial.git
 cd citrus-pangenome-tutorial
 
 # 2. 教材を辿る
