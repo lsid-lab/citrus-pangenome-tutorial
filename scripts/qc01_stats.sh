@@ -4,7 +4,11 @@
 # Purpose:
 #   Compute basic FASTA statistics for the 6 haploid assemblies (3 cultivars
 #   x 2 haplotypes) and produce a summary table with automatic pass/warn/fail
-#   verdicts based on citrus-specific expected values.
+#   verdicts.
+#
+#   The verdicts are judged against EXPECTED VALUES FOR THE SPECIES, not against
+#   universal thresholds - see docs section 4.5. The defaults below are for
+#   Citrus; override them with environment variables for any other species.
 #
 # Metrics computed via seqkit stats:
 #   - num_seqs   : contig/chromosome count
@@ -15,25 +19,43 @@
 #
 # Usage:
 #   bash qc01_stats.sh tables/samplesheet.tsv .
+#
+#   For a different species, pass its expected values, e.g. human (n=23,
+#   ~3.1 Gb, GC ~41%):
+#     EXPECTED_NUM_CHR=23 \
+#     EXPECTED_SIZE_MIN=2900 EXPECTED_SIZE_MAX=3300 \
+#     EXPECTED_GC_MIN=40.0 EXPECTED_GC_MAX=42.0 \
+#     bash qc01_stats.sh tables/samplesheet.tsv .
 
 set -euo pipefail
 
-# Ensure seqkit is in PATH (either from ~/bin or a local install)
-export PATH="${HOME}/bin:/home/claude/bin:${PATH}"
-
+# Ensure seqkit is in PATH (project-local ./bin, or a system install)
 SAMPLESHEET="${1:?samplesheet.tsv path required}"
 PROJECT="${2:-.}"
-OUT="${PROJECT}/qc"
+
+# Project-local wrapper directory (see setup_singularity_wrappers.sh).
+export PATH="${PROJECT}/bin:${PATH}"
+OUT="${PROJECT}/results/qc"
 mkdir -p "$OUT"
 
 SUMMARY="${OUT}/stats_summary.tsv"
 
-# ---------- Expected values for Citrus (haploid genome ~320 Mb) ----------
-EXPECTED_NUM_CHR=9       # Haploid chromosome number
-EXPECTED_SIZE_MIN=290    # Mb, minimum expected haploid size
-EXPECTED_SIZE_MAX=370    # Mb, maximum expected haploid size
-EXPECTED_GC_MIN=34.0     # %, minimum GC content
-EXPECTED_GC_MAX=38.0     # %, maximum GC content
+# ---------- Expected values (defaults: Citrus, haploid genome ~320 Mb) ----------
+# All of these are species-specific. Override via the environment to run this
+# script on any other organism.
+EXPECTED_NUM_CHR="${EXPECTED_NUM_CHR:-9}"        # Haploid chromosome number
+EXPECTED_SIZE_MIN="${EXPECTED_SIZE_MIN:-290}"    # Mb, minimum expected haploid size
+EXPECTED_SIZE_MAX="${EXPECTED_SIZE_MAX:-370}"    # Mb, maximum expected haploid size
+EXPECTED_GC_MIN="${EXPECTED_GC_MIN:-34.0}"       # %, minimum GC content
+EXPECTED_GC_MAX="${EXPECTED_GC_MAX:-38.0}"       # %, maximum GC content
+
+# Contiguity thresholds, derived from the expected chromosome number so that
+# they scale with the organism. A fixed "<= 20 sequences" rule would flag even
+# T2T-CHM13 (24 sequences) as semi-fragmented.
+#   Citrus  (n=9)  -> CHR_SCALE_MAX=20,  FRAGMENTED_MIN=200
+#   Human   (n=23) -> CHR_SCALE_MAX=48,  FRAGMENTED_MIN=480
+CHR_SCALE_MAX="${CHR_SCALE_MAX:-$(( EXPECTED_NUM_CHR * 2 + 2 ))}"
+FRAGMENTED_MIN="${FRAGMENTED_MIN:-$(( CHR_SCALE_MAX * 10 ))}"
 
 echo ""
 echo "========================================================"
@@ -42,6 +64,8 @@ echo "========================================================"
 echo "  Expected: haploid $EXPECTED_SIZE_MIN-$EXPECTED_SIZE_MAX Mb"
 echo "            chromosomes = $EXPECTED_NUM_CHR"
 echo "            GC% = $EXPECTED_GC_MIN-$EXPECTED_GC_MAX"
+echo "            chromosome-scale if num_seqs <= $CHR_SCALE_MAX,"
+echo "            fragmented if num_seqs > $FRAGMENTED_MIN"
 echo "========================================================"
 
 # ---------- Initialize summary table header ----------
@@ -95,10 +119,10 @@ awk 'NR>1' "$SAMPLESHEET" | while IFS=$'\t' read -r sid cvj sp prefix h1 h2 src 
       verdict="WARN"
     fi
 
-    # Chromosome-scale determination
-    if [[ "$num_seqs" -le 20 ]]; then
+    # Chromosome-scale determination (thresholds scale with EXPECTED_NUM_CHR)
+    if [[ "$num_seqs" -le "$CHR_SCALE_MAX" ]]; then
       num_flag="CHR_SCALE"
-    elif [[ "$num_seqs" -le 200 ]]; then
+    elif [[ "$num_seqs" -le "$FRAGMENTED_MIN" ]]; then
       num_flag="SEMI_FRAGMENTED"
       [[ "$verdict" == "PASS" ]] && verdict="WARN"
     else

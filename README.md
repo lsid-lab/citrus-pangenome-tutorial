@@ -33,6 +33,7 @@ A hands-on tutorial for constructing a pangenome graph from haplotype-resolved a
 | [5](docs/en/05_graph_construction.md) | Graph construction | Tool comparison (minigraph / MC / PGGB), running PGGB |
 | [6](docs/en/06_graph_qc.md) | Graph QC | 4-level evaluation, compression ratio, transclose-batch check |
 | [7](docs/en/07_graph_interpretation.md) | Graph interpretation | VCF, visualization, pedigree verification |
+| [A](docs/en/appendix_minigraph_cactus.md) | *Appendix*: Minigraph-Cactus | The same data through MC (untested) |
 
 ### Repository layout
 
@@ -52,8 +53,16 @@ citrus-pangenome-tutorial/
 │   ├── pg02_run_pggb.sh
 │   ├── pg03_qc_graph.sh
 │   └── pg04_visualize.sh
-└── tables/
-    └── samplesheet.tsv
+├── tables/
+│   ├── samplesheet.tsv
+│   └── assembly_provenance_v1_v2.tsv
+│
+│   # --- created as you work through the tutorial (all git-ignored) ---
+├── data/
+│   ├── raw/                     # downloaded assemblies, left untouched
+│   └── input/                   # PanSN-normalised, one FASTA per chromosome
+├── results/                     # qc/ pggb/ graph_qc/ viz/
+└── bin/                         # Singularity wrappers (optional)
 ```
 
 ### Prerequisites
@@ -77,7 +86,7 @@ citrus-pangenome-tutorial/
 
 ```bash
 # 1. Clone
-git clone https://github.com/<user>/citrus-pangenome-tutorial.git
+git clone https://github.com/lsid-lab/citrus-pangenome-tutorial.git
 cd citrus-pangenome-tutorial
 
 # 2. Follow the tutorial
@@ -131,6 +140,7 @@ Issues and Pull Requests are welcome. Corrections, translation contributions, an
 | [5](docs/ja/05_graph_construction.md) | Pangenome-graph 構築 | 手法比較(minigraph / MC / PGGB)、PGGB 実行 |
 | [6](docs/ja/06_graph_qc.md) | グラフの QC | 4層の品質評価、圧縮率、transclose-batchの確認 |
 | [7](docs/ja/07_graph_interpretation.md) | グラフの解釈 | VCF 読み、可視化、pedigree 確認 |
+| [付](docs/ja/appendix_minigraph_cactus.md) | *付録*: Minigraph-Cactus | 同じデータを MC で扱う手順(未検証) |
 
 ### リポジトリ構成
 
@@ -150,8 +160,16 @@ citrus-pangenome-tutorial/
 │   ├── pg02_run_pggb.sh
 │   ├── pg03_qc_graph.sh
 │   └── pg04_visualize.sh
-└── tables/
-    └── samplesheet.tsv
+├── tables/
+│   ├── samplesheet.tsv
+│   └── assembly_provenance_v1_v2.tsv
+│
+│   # --- created as you work through the tutorial (all git-ignored) ---
+├── data/
+│   ├── raw/                     # downloaded assemblies, left untouched
+│   └── input/                   # PanSN-normalised, one FASTA per chromosome
+├── results/                     # qc/ pggb/ graph_qc/ viz/
+└── bin/                         # Singularity wrappers (optional)
 ```
 
 ### 前提となる計算環境
@@ -175,7 +193,7 @@ citrus-pangenome-tutorial/
 
 ```bash
 # 1. Clone
-git clone https://github.com/<user>/citrus-pangenome-tutorial.git
+git clone https://github.com/lsid-lab/citrus-pangenome-tutorial.git
 cd citrus-pangenome-tutorial
 
 # 2. 教材を辿る

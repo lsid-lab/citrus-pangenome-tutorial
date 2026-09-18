@@ -13,14 +13,15 @@
 
 set -uo pipefail
 
-export PATH="${HOME}/bin:/home/claude/bin:${PATH}"
-
 PROJECT="${1:-.}"
+
+# Project-local wrapper directory (see setup_singularity_wrappers.sh).
+export PATH="${PROJECT}/bin:${PATH}"
 CHR="${2:?chromosome name (e.g. chr09) required}"
-OUT="${3:-${PROJECT}/03_pangenome/qc/viz}"
+OUT="${3:-${PROJECT}/results/viz}"
 mkdir -p "$OUT"
 
-OG=$(ls "${PROJECT}/03_pangenome/by_chr/${CHR}_pggb/${CHR}.fa.gz."*.smooth.final.og 2>/dev/null | head -1)
+OG=$(ls "${PROJECT}/results/pggb/${CHR}/${CHR}.fa.gz."*.smooth.final.og 2>/dev/null | head -1)
 
 if [[ -z "$OG" || ! -f "$OG" ]]; then
   echo "ERROR: no OG file found for ${CHR} (pattern: chr${CHR}.fa.gz.*.smooth.final.og)"

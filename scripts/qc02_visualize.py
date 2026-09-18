@@ -7,7 +7,7 @@ Reads stats_summary.tsv and produces a single overview PNG suitable for
 reports or tutorial figures.
 
 Usage:
-    python3 qc02_visualize.py qc/stats_summary.tsv qc/qc_overview.png
+    python3 qc02_visualize.py results/qc/stats_summary.tsv results/qc/qc_overview.png
 """
 import sys
 import pandas as pd
@@ -33,7 +33,7 @@ fig.suptitle(
 )
 
 # Assign one color per cultivar
-color_map = {'STS': '#e74c3c', 'KSH': '#3498db', 'KNN': '#27ae60'}
+color_map = {'CUN': '#e74c3c', 'CKI': '#3498db', 'CKU': '#27ae60'}
 sample_colors = [color_map.get(s, '#95a5a6') for s in df['sample']]
 
 # ============ Panel A: Total sequence length ============
@@ -113,9 +113,9 @@ ax.set_ylim(30, 42)
 
 # ---------- Combined legend (color = cultivar, pattern = haplotype) ----------
 sample_patches = [
-    mpatches.Patch(color=color_map['STS'], label='Satsuma (STS)'),
-    mpatches.Patch(color=color_map['KSH'], label='Kishu (KSH)'),
-    mpatches.Patch(color=color_map['KNN'], label='Kunenbo (KNN)'),
+    mpatches.Patch(color=color_map['CUN'], label='Satsuma (CUN)'),
+    mpatches.Patch(color=color_map['CKI'], label='Kishu (CKI)'),
+    mpatches.Patch(color=color_map['CKU'], label='Kunenbo (CKU)'),
 ]
 hap_patches = [
     mpatches.Patch(facecolor='white', edgecolor='black', label='hap1 (solid)'),

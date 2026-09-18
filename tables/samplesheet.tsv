@@ -1,4 +1,4 @@
 sample_id	cultivar_jp	species	pansn_prefix	hap1_path	hap2_path	source	pedigree
-STS	温州みかん (Satsuma)	Citrus unshiu	satsuma	data/satsuma/CUNphKi_r1.0.pmol.fasta.gz	data/satsuma/CUNphKu_r1.0.ch1-9.fasta.gz	Plant GARDEN t55188.G003/G004	F1: KSH x KNN
-KSH	紀州みかん (Kishu)	Citrus kinokuni	kishu	data/kishu/CKIhap1_r1.0.pmol.fasta.gz	data/kishu/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488	Mother of STS
-KNN	九年母 (Kunenbo)	Citrus nobilis	kunenbo	data/kunenbo/CKUhap1_r1.0.pmol.fasta.gz	data/kunenbo/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549	Father of STS
+CUN	温州みかん (Satsuma)	Citrus unshiu	CUN	data/raw/CUN/CUNphKu_r1.0.ch1-9.fasta.gz	data/raw/CUN/CUNphKi_r1.0.pmol.fasta.gz	Plant GARDEN t55188.G004/G003	F1: CKI x CKU
+CKI	紀州みかん (Kishu)	Citrus kinokuni	CKI	data/raw/CKI/CKIhap1_r1.0.pmol.fasta.gz	data/raw/CKI/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488.G002/G003	Mother of CUN
+CKU	九年母 (Kunenbo)	Citrus nobilis	CKU	data/raw/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/raw/CKU/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549.G002/G003	Father of CUN

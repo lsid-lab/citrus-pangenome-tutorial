@@ -6,7 +6,8 @@
 #   levels:
 #     Level 1: Structural check (odgi stats + .params.yml verification)
 #     Level 2: Path preservation (input path lengths vs graph path lengths)
-#     Level 3: Pedigree consistency (expected relationship: STS = F1(KSH, KNN))
+#     Level 3: Pedigree consistency (expected relationship: CUN = F1(CKI mother, CKU father);
+#              CUN#1 = CUNphKu is the paternal hap, CUN#2 = CUNphKi the maternal one)
 #     Level 4: SV signal (vg deconstruct output)
 #
 # Verdict rules:
@@ -24,8 +25,9 @@ set -uo pipefail
 PROJECT="${1:-.}"
 CHR_FILTER="${2:-all}"
 
-BY_CHR="${PROJECT}/03_pangenome/by_chr"
-QC_OUT="${PROJECT}/03_pangenome/qc"
+INPUT_DIR="${PROJECT}/data/input"
+PGGB_OUT="${PROJECT}/results/pggb"
+QC_OUT="${PROJECT}/results/graph_qc"
 mkdir -p "$QC_OUT"
 
 echo "======================================================================"
@@ -64,8 +66,12 @@ if [[ $PREFLIGHT_OK -ne 1 ]]; then
   echo "   2. Create wrappers:"
   echo "      bash scripts/setup_singularity_wrappers.sh /full/path/to/pggb_latest.sif"
   echo ""
-  echo "   3. Ensure PATH includes ~/bin (also in your SLURM script):"
-  echo "      export PATH=\"\$HOME/bin:\$PATH\""
+  echo "   3. Put the project-local wrapper directory on PATH"
+  echo "      (also in your SLURM script):"
+  echo "      export PATH=\"\$PWD/bin:\$PATH\""
+  echo ""
+  echo "      Or skip the wrappers and call tools directly:"
+  echo "      singularity exec /path/to/pggb_latest.sif odgi ..."
   echo ""
   echo "   4. Rerun pg03"
   exit 1
@@ -80,7 +86,7 @@ SUMMARY_TSV="${QC_OUT}/graph_qc_summary.tsv"
 printf "chr\tinput_bp\tnode_count\tedge_count\tpath_count\tgraph_bp\tinflation\tpath_length_ok\tSV_count\tverdict\n" > "$SUMMARY_TSV"
 
 CHROMS_TO_PROCESS=()
-for CHR_DIR in "$BY_CHR"/chr*_pggb; do
+for CHR_DIR in "$PGGB_OUT"/*/; do
   [[ ! -d "$CHR_DIR" ]] && continue
   CHR=$(basename "$CHR_DIR" | sed 's/_pggb//')
   [[ "$CHR_FILTER" != "all" && "$CHR_FILTER" != "$CHR" ]] && continue
@@ -100,11 +106,11 @@ echo ""
 # QC loop per chromosome
 # ===================================================================
 for CHR in "${CHROMS_TO_PROCESS[@]}"; do
-  CHR_DIR="$BY_CHR/${CHR}_pggb"
+  CHR_DIR="$PGGB_OUT/${CHR}"
   # PGGB output filenames embed parameter hashes
   OG=$(ls "$CHR_DIR/${CHR}.fa.gz."*.smooth.final.og 2>/dev/null | head -1)
   GFA=$(ls "$CHR_DIR/${CHR}.fa.gz."*.smooth.final.gfa 2>/dev/null | head -1)
-  IN_FA="$BY_CHR/${CHR}.fa.gz"
+  IN_FA="$INPUT_DIR/${CHR}.fa.gz"
 
   if [[ -z "$OG" || ! -f "$OG" ]]; then
     echo "[SKIP] $CHR: OG file not found (pg02 incomplete or naming mismatch)"
@@ -271,69 +277,75 @@ PYEOF
     echo "    [debug] similarity columns: $HEADER"
     
     echo ""
-    echo "    Expected pedigree (STS = KSH x KNN F1):"
-    echo "      STS_hap1 (CUNphKi, Kishu-derived) should be closest to one Kishu hap"
-    echo "      STS_hap2 (CUNphKu, Kunenbo-derived) should be closest to one Kunenbo hap"
+    echo "    Expected pedigree (CUN = CKI x CKU F1):"
+    echo "      CUN#1 (CUNphKu, paternal) should score higher against CKU than against CKI"
+    echo "      CUN#2 (CUNphKi, maternal) should score higher against CKI than against CKU"
+    echo "      (each is a recombinant mosaic of that parent's two haplotypes, so it need"
+    echo "       not match a single parental haplotype - see docs section 2.4)"
 
     JACCARD_COL=$(echo "$HEADER" | tr '\t' '\n' | grep -n -i "jaccard" | head -1 | cut -d: -f1)
     [[ -z "$JACCARD_COL" ]] && JACCARD_COL=6
 
-    # Show individual pair values (satsuma#1 and satsuma#2 vs all parent haps)
+    # Show individual pair values (CUN#1 and CUN#2 vs all parent haps)
     echo ""
     echo "    --- Individual pair similarities (Jaccard) ---"
     echo ""
-    echo "    STS_hap1 (satsuma#1) vs each parent haplotype:"
-    awk -F'\t' -v c=$JACCARD_COL 'NR>1 && $1 ~ /^satsuma#1/ && ($2 ~ /^kishu/ || $2 ~ /^kunenbo/) {
+    echo "    CUN#1 (CUNphKu, Kunenbo-derived) vs each parent haplotype:"
+    awk -F'\t' -v c=$JACCARD_COL 'NR>1 && $1 ~ /^CUN#1/ && ($2 ~ /^CKI/ || $2 ~ /^CKU/) {
       printf "      %-30s  Jaccard = %.4f\n", $2, $c
-    } NR>1 && $2 ~ /^satsuma#1/ && ($1 ~ /^kishu/ || $1 ~ /^kunenbo/) {
+    } NR>1 && $2 ~ /^CUN#1/ && ($1 ~ /^CKI/ || $1 ~ /^CKU/) {
       printf "      %-30s  Jaccard = %.4f\n", $1, $c
     }' "$QC_OUT/${CHR}_similarity.tsv" | sort -u
 
     echo ""
-    echo "    STS_hap2 (satsuma#2) vs each parent haplotype:"
-    awk -F'\t' -v c=$JACCARD_COL 'NR>1 && $1 ~ /^satsuma#2/ && ($2 ~ /^kishu/ || $2 ~ /^kunenbo/) {
+    echo "    CUN#2 (CUNphKi, Kishu-derived) vs each parent haplotype:"
+    awk -F'\t' -v c=$JACCARD_COL 'NR>1 && $1 ~ /^CUN#2/ && ($2 ~ /^CKI/ || $2 ~ /^CKU/) {
       printf "      %-30s  Jaccard = %.4f\n", $2, $c
-    } NR>1 && $2 ~ /^satsuma#2/ && ($1 ~ /^kishu/ || $1 ~ /^kunenbo/) {
+    } NR>1 && $2 ~ /^CUN#2/ && ($1 ~ /^CKI/ || $1 ~ /^CKU/) {
       printf "      %-30s  Jaccard = %.4f\n", $1, $c
     }' "$QC_OUT/${CHR}_similarity.tsv" | sort -u
 
     # AVG-based aggregate
-    STS1_KSH_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#1/ && $2 ~ /^kishu/) || ($2 ~ /^satsuma#1/ && $1 ~ /^kishu/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
-    STS1_KNN_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#1/ && $2 ~ /^kunenbo/) || ($2 ~ /^satsuma#1/ && $1 ~ /^kunenbo/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
-    STS2_KSH_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#2/ && $2 ~ /^kishu/) || ($2 ~ /^satsuma#2/ && $1 ~ /^kishu/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
-    STS2_KNN_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#2/ && $2 ~ /^kunenbo/) || ($2 ~ /^satsuma#2/ && $1 ~ /^kunenbo/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN1_CKI_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#1/ && $2 ~ /^CKI/) || ($2 ~ /^CUN#1/ && $1 ~ /^CKI/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN1_CKU_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#1/ && $2 ~ /^CKU/) || ($2 ~ /^CUN#1/ && $1 ~ /^CKU/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN2_CKI_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#2/ && $2 ~ /^CKI/) || ($2 ~ /^CUN#2/ && $1 ~ /^CKI/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN2_CKU_AVG=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#2/ && $2 ~ /^CKU/) || ($2 ~ /^CUN#2/ && $1 ~ /^CKU/)) {sum+=$c; n++} END{if(n>0) printf "%.3f", sum/n; else print "NA"}' "$QC_OUT/${CHR}_similarity.tsv")
 
     # MAX-based aggregate (the biologically meaningful pedigree indicator)
-    STS1_KSH_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#1/ && $2 ~ /^kishu/) || ($2 ~ /^satsuma#1/ && $1 ~ /^kishu/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
-    STS1_KNN_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#1/ && $2 ~ /^kunenbo/) || ($2 ~ /^satsuma#1/ && $1 ~ /^kunenbo/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
-    STS2_KSH_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#2/ && $2 ~ /^kishu/) || ($2 ~ /^satsuma#2/ && $1 ~ /^kishu/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
-    STS2_KNN_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^satsuma#2/ && $2 ~ /^kunenbo/) || ($2 ~ /^satsuma#2/ && $1 ~ /^kunenbo/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN1_CKI_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#1/ && $2 ~ /^CKI/) || ($2 ~ /^CUN#1/ && $1 ~ /^CKI/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN1_CKU_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#1/ && $2 ~ /^CKU/) || ($2 ~ /^CUN#1/ && $1 ~ /^CKU/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN2_CKI_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#2/ && $2 ~ /^CKI/) || ($2 ~ /^CUN#2/ && $1 ~ /^CKI/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
+    CUN2_CKU_MAX=$(awk -F'\t' -v c=$JACCARD_COL 'NR>1 && (($1 ~ /^CUN#2/ && $2 ~ /^CKU/) || ($2 ~ /^CUN#2/ && $1 ~ /^CKU/)) {if($c>max) max=$c} END{printf "%.3f", max}' "$QC_OUT/${CHR}_similarity.tsv")
 
     echo ""
     echo "    --- Aggregate values ---"
     printf "    %-15s  %-15s  %-15s\n" " " "vs Kishu" "vs Kunenbo"
-    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "STS_hap1" $STS1_KSH_AVG $STS1_KSH_MAX $STS1_KNN_AVG $STS1_KNN_MAX
-    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "STS_hap2" $STS2_KSH_AVG $STS2_KSH_MAX $STS2_KNN_AVG $STS2_KNN_MAX
+    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "CUN#1 (CKU-der)" $CUN1_CKI_AVG $CUN1_CKI_MAX $CUN1_CKU_AVG $CUN1_CKU_MAX
+    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "CUN#2 (CKI-der)" $CUN2_CKI_AVG $CUN2_CKI_MAX $CUN2_CKU_AVG $CUN2_CKU_MAX
 
     # AVG-based and MAX-based pedigree tests
     AVG_TEST=$(python3 <<PYEOF
 try:
-    a=float("$STS1_KSH_AVG"); b=float("$STS1_KNN_AVG"); c=float("$STS2_KSH_AVG"); d=float("$STS2_KNN_AVG")
-    print("YES" if ((a > b) and (d > c)) else "NO")
+    a=float("$CUN1_CKI_AVG"); b=float("$CUN1_CKU_AVG"); c=float("$CUN2_CKI_AVG"); d=float("$CUN2_CKU_AVG")
+    # CUN#1 = CUNphKu (Kunenbo-derived) -> expect CKU > CKI
+    # CUN#2 = CUNphKi (Kishu-derived)   -> expect CKI > CKU
+    print("YES" if ((b > a) and (c > d)) else "NO")
 except: print("NA")
 PYEOF
 )
     MAX_TEST=$(python3 <<PYEOF
 try:
-    a=float("$STS1_KSH_MAX"); b=float("$STS1_KNN_MAX"); c=float("$STS2_KSH_MAX"); d=float("$STS2_KNN_MAX")
-    print("YES" if ((a > b) and (d > c)) else "NO")
+    a=float("$CUN1_CKI_MAX"); b=float("$CUN1_CKU_MAX"); c=float("$CUN2_CKI_MAX"); d=float("$CUN2_CKU_MAX")
+    # CUN#1 = CUNphKu (Kunenbo-derived) -> expect CKU > CKI
+    # CUN#2 = CUNphKi (Kishu-derived)   -> expect CKI > CKU
+    print("YES" if ((b > a) and (c > d)) else "NO")
 except: print("NA")
 PYEOF
 )
 
     echo ""
     echo "    --- Pedigree tests ---"
-    echo "      AVG-based: $AVG_TEST  (STS_hap1 closer to Kishu AND STS_hap2 closer to Kunenbo?)"
+    echo "      AVG-based: $AVG_TEST  (CUN#1 closer to Kunenbo AND CUN#2 closer to Kishu?)"
     echo "      MAX-based: $MAX_TEST  (true pedigree indicator: closest hap matches pedigree?)"
     
     if [[ "$MAX_TEST" == "YES" ]]; then
@@ -342,7 +354,7 @@ PYEOF
         L3_OK="WARN: MAX-based consistent, AVG-based inconsistent (likely due to haplotype leakage)"
       fi
     elif [[ "$MAX_TEST" == "NO" ]]; then
-      L3_OK="WARN: MAX-based inconsistent (haplotype leakage or hap1/hap2 label swap?)"
+      L3_OK="WARN: MAX-based inconsistent (path-length effects, or CUN#1/CUN#2 assigned the wrong way round?)"
     else
       L3_OK="WARN: could not evaluate"
     fi
@@ -359,7 +371,7 @@ PYEOF
 
   VCF="$QC_OUT/${CHR}.vcf"
   if [[ ! -f "$VCF" || ! -s "$VCF" ]]; then
-    if vg deconstruct -P satsuma#1 -H '#' -a -e -t 8 "$GFA" > "$VCF" 2>"$QC_OUT/${CHR}_vg_deconstruct.err"; then
+    if vg deconstruct -P CUN#1 -H '#' -a -e -t 8 "$GFA" > "$VCF" 2>"$QC_OUT/${CHR}_vg_deconstruct.err"; then
       :
     else
       echo "    FAIL: vg deconstruct failed"

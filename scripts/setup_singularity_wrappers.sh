@@ -2,8 +2,13 @@
 # setup_singularity_wrappers.sh
 #
 # Purpose:
-#   Create wrapper scripts in ~/bin/ so that tools inside the PGGB Singularity
-#   image can be invoked from the host as if they were installed natively.
+#   Create wrapper scripts in ./bin/ (inside the project directory) so that
+#   tools inside the PGGB Singularity image can be invoked as if they were
+#   installed natively.
+#
+#   Nothing is written outside the project: no ~/bin, no shell rc files.
+#   Wrappers are a convenience only - every command in the tutorial can be run
+#   directly as `singularity exec <image>.sif <tool> ...` instead.
 #
 # Rationale:
 #   The PGGB image (pggb_latest.sif) contains all tools needed for pangenome
@@ -15,7 +20,10 @@
 #   allow standard invocation like `odgi stats -i graph.og`.
 #
 # Usage:
-#   bash setup_singularity_wrappers.sh /full/path/to/pggb_latest.sif
+#   bash setup_singularity_wrappers.sh /full/path/to/pggb_latest.sif [project_dir]
+#
+#   Then put them on PATH for the session:
+#     export PATH="$PWD/bin:$PATH"
 #
 # Example:
 #   bash setup_singularity_wrappers.sh /home/user/mikan/pggb_latest.sif
@@ -23,6 +31,7 @@
 set -euo pipefail
 
 SIF="${1:?Absolute path to Singularity image (.sif) required as argument}"
+PROJECT="${2:-.}"
 
 if [[ ! -f "$SIF" ]]; then
   echo "ERROR: SIF file not found: $SIF"
@@ -32,7 +41,7 @@ fi
 SIF_ABS=$(readlink -f "$SIF")
 echo "PGGB image: $SIF_ABS"
 
-BIN_DIR="$HOME/bin"
+BIN_DIR="$(cd "$PROJECT" && pwd)/bin"
 mkdir -p "$BIN_DIR"
 
 # List of tools packaged inside the PGGB image
@@ -69,11 +78,11 @@ echo "======================================================================"
 echo " Wrapper creation complete"
 echo "======================================================================"
 echo ""
-echo " Check that ~/bin is in your PATH:"
+echo " Add the wrapper directory to PATH for this session:"
 if echo "$PATH" | tr ':' '\n' | grep -qx "$HOME/bin"; then
-  echo "   OK: ~/bin is in PATH"
+  echo "   OK: $BIN_DIR is already in PATH"
 else
-  echo "   NOTE: ~/bin is not in PATH"
+  echo "   NOTE: run  export PATH=\"$BIN_DIR:\$PATH\""
   echo "     Add to .bashrc:"
   echo "       echo 'export PATH=\"\$HOME/bin:\$PATH\"' >> ~/.bashrc"
   echo "     Apply to current shell:"
