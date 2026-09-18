@@ -169,8 +169,8 @@ max_diff が 0.000% なら**入力配列は完全に graph に保存**されて�
 3 品種の系統関係が既知(CUN = CKI × CKU)なので、graph 上の path 間類似度が pedigree と整合するかを確認できます。
 
 期待:
-- CUN_hap1 (Kishu 由来) と CKI の hap のどちらか → 高い類似度
-- CUN_hap2 (Kunenbo 由来) と CKU の hap のどちらか → 高い類似度
+- `CUN#1` (CUNphKu、九年母由来) と CKU の hap のどちらか → 高い類似度
+- `CUN#2` (CUNphKi、紀州由来) と CKI の hap のどちらか → 高い類似度
 
 ### 6.4.2 odgi similarity の実行
 
@@ -188,27 +188,27 @@ group.a  group.b  a.length  b.length  intersection  jaccard  cosine  dice  ident
 ### 6.4.3 AVG-based vs MAX-based の検定
 
 **平均(AVG)**で見ると誤解しやすい:
-- CUN_hap1 vs CKI の "平均" 類似度は、CKI_hap1 と CKI_hap2 の両方との平均
-- CUN_hap1 は組み換えによる CKI_hap1 / CKI_hap2 の**モザイク**なので(§2.4)、区間ごとに「より近い方」が入れ替わる。両方を平均してしまうと、その構造がならされて **CKU 側との差が縮み、pedigree のシグナルが埋もれる**
+- `CUN#1` vs CKU の "平均" 類似度は、CKU_hap1 と CKU_hap2 の両方との平均
+- `CUN#1` は組み換えによる CKU_hap1 / CKU_hap2 の**モザイク**なので(§2.4)、区間ごとに「より近い方」が入れ替わる。両方を平均してしまうと、その構造がならされて **CKI 側との差が縮み、pedigree のシグナルが埋もれる**
 
 **最大(MAX)**で見るのが本質的:
-- MAX(CUN_hap1 vs CKI_hap1, CUN_hap1 vs CKI_hap2) = 「より近い方の CKI hap との類似度」
-- 組み換えがあっても CUN_hap1 の全区間は CKI の 2 本のいずれかに由来するので、この MAX は CKU 側の MAX より必ず高くなる
+- MAX(`CUN#1` vs CKU_hap1, `CUN#1` vs CKU_hap2) = 「より近い方の CKU hap との類似度」
+- 組み換えがあっても `CUN#1` の全区間は CKU の 2 本のいずれかに由来するので、この MAX は CKI 側の MAX より必ず高くなる
 
-> **注意**: これは「**donor が親 CKI である**」ことの検定であって、「donor hap は CKI_hap1 である」を決める検定ではありません。染色体全体の Jaccard 1 個で親のどちらのハプロタイプかを特定することはできません(§2.4)。区間ごとの由来を追うには §7.5.2 の窓ごとの解析が必要です。
+> **注意**: これは「**donor が親 CKU である**」ことの検定であって、「donor hap は CKU_hap1 である」を決める検定ではありません。染色体全体の Jaccard 1 個で親のどちらのハプロタイプかを特定することはできません(§2.4)。区間ごとの由来を追うには §7.5.2 の窓ごとの解析が必要です。
 
 `pg03_qc_graph.sh` は両方を計算します:
 
 ```
-CUN_hap1 の各parent hap との類似度:
-  CKI#1#chr09    Jaccard = 0.62  ← より近い CKI hap
+CUN#1 (CUNphKu、九年母由来) の各 parent hap との類似度:
+  CKU#1#chr09    Jaccard = 0.62  ← より近い CKU hap
+  CKU#2#chr09    Jaccard = 0.48
+  CKI#1#chr09    Jaccard = 0.42
   CKI#2#chr09    Jaccard = 0.35
-  CKU#1#chr09  Jaccard = 0.42
-  CKU#2#chr09  Jaccard = 0.48
 
 --- Pedigree検定 ---
-  AVG-based: NO   (haplotype leakage で撹乱)
-  MAX-based: YES  (真の pedigree は整合)
+  AVG-based: NO   (path 長の偏りで撹乱)
+  MAX-based: YES  (CKU の MAX 0.62 > CKI の MAX 0.42)
 ```
 
 ### 6.4.4 CUN の path が長いことの影響
@@ -217,7 +217,7 @@ CUN_hap1 の各parent hap との類似度:
 
 Jaccard = intersection / union の性質上、**片方の path が長いほど union が大きくなり、Jaccard が下がる**。
 
-CUN_hap1 が 45 Mb (期待の 30 Mb の 1.5 倍)で、他の hap が 30 Mb だと:
+`CUN#1` が 45 Mb (期待の 30 Mb の 1.5 倍)で、他の hap が 30 Mb だと:
 - intersection = 25 Mb (共有部分)
 - union = 45 + 30 - 25 = 50 Mb
 - Jaccard = 0.50
@@ -227,10 +227,10 @@ CUN_hap1 が 45 Mb (期待の 30 Mb の 1.5 倍)で、他の hap が 30 Mb だ�
 ### 6.4.5 判定基準
 
 MAX-based で:
-- CUN_hap1 が CKI のどちらかと最高類似度 = ✅
-- CUN_hap2 が CKU のどちらかと最高類似度 = ✅
+- `CUN#1` が CKU のどちらかと最高類似度 = ✅
+- `CUN#2` が CKI のどちらかと最高類似度 = ✅
 
-両方満たせば **pedigree consistent**。片方でも満たさない場合、hap1/hap2 のラベル入れ替わりや、trio phasing 失敗を疑います。
+両方満たせば **pedigree consistent**。片方でも満たさない場合、`CUN#1`/`CUN#2` の割り当ての取り違え(§2.5)や、trio phasing 失敗を疑います。
 
 ---
 

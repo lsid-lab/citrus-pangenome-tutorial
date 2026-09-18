@@ -295,7 +295,7 @@ eukaryota  →  viridiplantae  →  embryophyta  →  eudicots
 
 ```bash
 busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
-      -l eudicots_odb10 -c 16 -o busco/CUN_hap1
+      -l eudicots_odb10 -c 16 -o busco/CUN_hap2
 ```
 
 > データセット名末尾の `odb10` は元になった OrthoDB のバージョンです。新しい BUSCO では `odb12` 系も提供されているので、`busco --list-datasets` で手元の BUSCO が何を持っているか確認してください。

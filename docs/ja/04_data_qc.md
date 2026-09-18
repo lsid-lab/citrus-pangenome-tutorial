@@ -87,7 +87,7 @@ seqkit stats -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz
 
 `-a` (all) オプションで N50 などの詳細も出ます。
 
-### 出力例(温州 hap1 の期待値)
+### 出力例(温州の紀州由来ハプロタイプ = `CUN#2` の場合)
 
 ```
 file                              format  type  num_seqs  sum_len      min_len    avg_len    max_len    N50
@@ -255,7 +255,7 @@ compleasm download eudicots_odb10
 ```bash
 # compleasm (BUSCO より高速)
 compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
-              -o busco/CUN_hap1 \
+              -o busco/CUN_hap2 \
               -l eudicots_odb10 \
               -t 16
 ```
@@ -288,7 +288,7 @@ meryl --version
 meryl count k=21 output hifi.meryl hifi_reads.fastq.gz
 
 # 2) アセンブリと照合(2 hap を同時に渡すと hap 間の比較も出る)
-merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz CUN
+merqury.sh hifi.meryl CUNphKu_r1.0.fasta.gz CUNphKi_r1.0.fasta.gz CUN
 ```
 
 trio のリード(両親 + 子)が揃っていれば、`hapmers` を作ることで **false duplication rate** や **hap-mer blob plot** まで出せます。これが haplotype leakage を判定する本来の道具です。

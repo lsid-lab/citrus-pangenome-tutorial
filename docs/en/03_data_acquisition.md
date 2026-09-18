@@ -102,14 +102,16 @@ For each of the three cultivars, Isobe et al. (2023) deposited the **same set of
 2. **hap1** — phased haplotype 1
 3. **hap2** — phased haplotype 2
 
+> The hap1 / hap2 here is **the distributor's (Plant GARDEN's) deposit order**, which is **not** the same as the PanSN `#1` / `#2` this tutorial uses in the graph. For Satsuma, deposit-order hap1 (G003, CUNphKi) becomes this tutorial's `CUN#2` (see §2.5 for why).
+
 **Satsuma (CUN, taxon `t55188`)**
 
 | Assembly ID | File | Content |
 |---|---|---|
 | t55188.**G001** | `C_unshiu_v1.0_scaffolds.fa.gz` | A **different study** — Kawahara et al. (2020), older and unphased |
 | t55188.**G002** | `CUNuph_r1.0.fasta.gz` | Isobe 2023 **unphased** (`uph` = **u**n**ph**ased) |
-| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **hap1** (`ph` = **ph**ased, `Ki` = **Ki**shu-derived) ← used here |
-| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **hap2** (`Ku` = **Ku**nenbo-derived) ← used here |
+| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **Kishu-derived haplotype** (`ph` = **ph**ased, `Ki` = **Ki**shu) ← used here (`CUN#2`) |
+| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **Kunenbo-derived haplotype** (`Ku` = **Ku**nenbo) ← used here (`CUN#1`) |
 
 **Kishu (CKI, `t408488`) and Kunenbo (CKU, `t481549`)** — these only go up to `G003`.
 
@@ -139,7 +141,7 @@ So a `pmol` is a sequence **constructed** to represent a chromosome. Treating it
 
 The convention is used consistently across Plant GARDEN / Kazusa DNA Research Institute releases: tomato's `SLM_r2.0.pmol`, pepper's `CAN_r1.2.pmol`, hydrangea's `HMA_r1.2.pmol`, and so on. A useful rule of thumb when browsing other Plant GARDEN datasets: **pick the file with `pmol` in its name and you get chromosome-level sequence.**
 
-> Note that Satsuma's hap2 is the one exception here: it is named **`CUNphKu_r1.0.ch1-9.fasta.gz`** (chromosomes 1-9 only) rather than `.pmol`. Since this tutorial builds graphs per chromosome, either naming works fine.
+> Note that Satsuma's Kunenbo-derived haplotype (`CUN#1`) is the one exception here: it is named **`CUNphKu_r1.0.ch1-9.fasta.gz`** (chromosomes 1-9 only) rather than `.pmol`. Since this tutorial builds graphs per chromosome, either naming works fine.
 
 ---
 
@@ -160,7 +162,8 @@ citrus-pangenome-tutorial/
 ├── docs/en/            # This tutorial
 ├── scripts/            # All executable scripts
 ├── tables/             # Metadata (samplesheet, etc.)
-│   └── samplesheet.tsv
+│   ├── samplesheet.tsv
+│   └── assembly_provenance_v1_v2.tsv   # r1.0 / r2.0 provenance, SHA-256, stats
 └── LICENSE
 ```
 
@@ -179,8 +182,8 @@ citrus-pangenome-tutorial/
 ├── ...(files present at clone time)
 ├── data/                              # (you provide) Downloaded assemblies
 │   ├── CUN/
-│   │   ├── CUNphKi_r1.0.pmol.fasta.gz
-│   │   └── CUNphKu_r1.0.ch1-9.fasta.gz
+│   │   ├── CUNphKu_r1.0.ch1-9.fasta.gz   # → CUN#1
+│   │   └── CUNphKi_r1.0.pmol.fasta.gz   # → CUN#2
 │   ├── CKI/
 │   │   ├── CKIhap1_r1.0.pmol.fasta.gz
 │   │   └── CKIhap2_r1.0.pmol.fasta.gz
@@ -236,7 +239,7 @@ Contents of `tables/samplesheet.tsv`:
 
 ```tsv
 sample_id  cultivar_jp  species          pansn_prefix  hap1_path                                        hap2_path                                          source                            pedigree
-CUN        Satsuma      Citrus unshiu    CUN       data/CUN/CUNphKi_r1.0.pmol.fasta.gz         data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz          Plant GARDEN t55188.G003/G004    F1: CKI x CKU
+CUN        Satsuma      Citrus unshiu    CUN       data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz        data/CUN/CUNphKi_r1.0.pmol.fasta.gz           Plant GARDEN t55188.G004/G003    F1: CKI x CKU
 CKI        Kishu        Citrus kinokuni  CKI         data/CKI/CKIhap1_r1.0.pmol.fasta.gz           data/CKI/CKIhap2_r1.0.pmol.fasta.gz             Plant GARDEN t408488             mother of CUN
 CKU        Kunenbo      Citrus nobilis   CKU       data/CKU/CKUhap1_r1.0.pmol.fasta.gz         data/CKU/CKUhap2_r1.0.pmol.fasta.gz           Plant GARDEN t481549             father of CUN
 ```
@@ -246,7 +249,7 @@ CKU        Kunenbo      Citrus nobilis   CKU       data/CKU/CKUhap1_r1.0.pmol.fa
 - `cultivar_jp`: display name
 - `species`: scientific name
 - `pansn_prefix`: short prefix used later in PanSN names
-- `hap1_path` / `hap2_path`: relative paths to FASTA files (from repo root)
+- `hap1_path` / `hap2_path`: relative paths to FASTA files (from repo root). **This order determines the PanSN `#1` / `#2`** (for Satsuma, `#1` = CUNphKu and `#2` = CUNphKi; see §2.5)
 - `source`: data origin
 - `pedigree`: family relationship notes
 

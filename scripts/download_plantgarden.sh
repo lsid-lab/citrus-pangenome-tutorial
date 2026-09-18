@@ -51,17 +51,17 @@ download_if_absent() {
 # ---------- Satsuma mandarin (Citrus unshiu) ----------
 echo "[Satsuma mandarin (CUN)]"
 
-# hap1 (Kishu-derived haplotype)
+# hap2 -> CUN#2 (Kishu-derived haplotype)
 download_if_absent \
   "$BASE/Citrus_unshiu/t55188.G003/CUNphKi_r1.0.pmol.fasta.gz" \
   "$OUT/CUN/CUNphKi_r1.0.pmol.fasta.gz" \
-  "hap1 (Kishu-derived): CUNphKi_r1.0"
+  "CUN#2 (Kishu-derived): CUNphKi_r1.0"
 
-# hap2 (Kunenbo-derived haplotype)
+# hap1 -> CUN#1 (Kunenbo-derived haplotype)
 download_if_absent \
   "$BASE/Citrus_unshiu/t55188.G004/CUNphKu_r1.0.ch1-9.fasta.gz" \
   "$OUT/CUN/CUNphKu_r1.0.ch1-9.fasta.gz" \
-  "hap2 (Kunenbo-derived): CUNphKu_r1.0"
+  "CUN#1 (Kunenbo-derived): CUNphKu_r1.0"
 
 # ---------- Kishu mandarin (Citrus kinokuni) ----------
 echo ""

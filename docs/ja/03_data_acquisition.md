@@ -102,14 +102,16 @@ Isobe et al. (2023) は 3 品種それぞれについて、次の **3 本セッ�
 2. **hap1** —— phased ハプロタイプ 1
 3. **hap2** —— phased ハプロタイプ 2
 
+> ここでの hap1 / hap2 は**配布元 (Plant GARDEN) の登録順**であって、本教材が graph で使う PanSN の `#1` / `#2` とは**別物**です。温州では登録順の hap1 (G003, CUNphKi) が本教材の `CUN#2` になります(理由は §2.5)。
+
 **温州みかん (CUN, taxon `t55188`)**
 
 | Assembly ID | ファイル | 内容 |
 |---|---|---|
 | t55188.**G001** | `C_unshiu_v1.0_scaffolds.fa.gz` | Kawahara et al. (2020) の**別研究**のアセンブリ(旧版、unphased) |
 | t55188.**G002** | `CUNuph_r1.0.fasta.gz` | Isobe 2023 の **unphased**(`uph` = **u**n**ph**ased) |
-| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **hap1**(`ph` = **ph**ased、`Ki` = **Ki**shu 由来)← 本教材で使用 |
-| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **hap2**(`Ku` = **Ku**nenbo 由来)← 本教材で使用 |
+| t55188.**G003** | `CUNphKi_r1.0.pmol.fasta.gz` | **紀州由来ハプロタイプ**(`ph` = **ph**ased、`Ki` = **Ki**shu)← 本教材で使用 (`CUN#2`) |
+| t55188.**G004** | `CUNphKu_r1.0.ch1-9.fasta.gz` | **九年母由来ハプロタイプ**(`Ku` = **Ku**nenbo)← 本教材で使用 (`CUN#1`) |
 
 **紀州みかん (CKI, `t408488`) / 九年母 (CKU, `t481549`)** —— こちらは `G003` までしかありません。
 
@@ -139,7 +141,7 @@ unphased アセンブリ(温州 G002、親 2 品種の G001)は使いません�
 
 この命名は Plant GARDEN / かずさDNA研究所の系統でかなり一貫しており、トマトの `SLM_r2.0.pmol`、トウガラシの `CAN_r1.2.pmol`、アジサイの `HMA_r1.2.pmol` のように、他種でも同じ流儀で付けられています。**他の Plant GARDEN データを触るときも、`pmol` が付いたファイルを選べば染色体レベルの配列が得られる**と覚えておくと便利です。
 
-> なお、温州の hap2 だけは `.pmol` ではなく **`CUNphKu_r1.0.ch1-9.fasta.gz`**(染色体 1〜9 のみを収めたファイル)という名前です。本教材は染色体別に graph を作るので、どちらの命名でも支障はありません。
+> なお、温州の九年母由来ハプロタイプ(`CUN#1`)だけは `.pmol` ではなく **`CUNphKu_r1.0.ch1-9.fasta.gz`**(染色体 1〜9 のみを収めたファイル)という名前です。本教材は染色体別に graph を作るので、どちらの命名でも支障はありません。
 
 ---
 
@@ -160,7 +162,8 @@ citrus-pangenome-tutorial/
 ├── docs/ja/            # 本チュートリアル本体 (このファイル群)
 ├── scripts/            # 実行スクリプト一式
 ├── tables/             # サンプルシートなどメタデータ
-│   └── samplesheet.tsv
+│   ├── samplesheet.tsv
+│   └── assembly_provenance_v1_v2.tsv   # r1.0 / r2.0 の配布元・SHA-256・統計
 └── LICENSE
 ```
 
@@ -179,8 +182,8 @@ citrus-pangenome-tutorial/
 ├── ...(clone時のファイル)
 ├── data/                          # ★ ダウンロードしたアセンブリ(あなたが用意)
 │   ├── CUN/
-│   │   ├── CUNphKi_r1.0.pmol.fasta.gz
-│   │   └── CUNphKu_r1.0.ch1-9.fasta.gz
+│   │   ├── CUNphKu_r1.0.ch1-9.fasta.gz   # → CUN#1
+│   │   └── CUNphKi_r1.0.pmol.fasta.gz   # → CUN#2
 │   ├── CKI/
 │   │   ├── CKIhap1_r1.0.pmol.fasta.gz
 │   │   └── CKIhap2_r1.0.pmol.fasta.gz
@@ -236,7 +239,7 @@ bash scripts/download_plantgarden.sh data/
 
 ```tsv
 sample_id	cultivar_jp	species	pansn_prefix	hap1_path	hap2_path	source	pedigree
-CUN	温州みかん	Citrus unshiu	CUN	data/CUN/CUNphKi_r1.0.pmol.fasta.gz	data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz	Plant GARDEN t55188.G003/G004	F1: CKI × CKU
+CUN	温州みかん	Citrus unshiu	CUN	data/CUN/CUNphKu_r1.0.ch1-9.fasta.gz	data/CUN/CUNphKi_r1.0.pmol.fasta.gz	Plant GARDEN t55188.G004/G003	F1: CKI × CKU
 CKI	紀州みかん	Citrus kinokuni	CKI	data/CKI/CKIhap1_r1.0.pmol.fasta.gz	data/CKI/CKIhap2_r1.0.pmol.fasta.gz	Plant GARDEN t408488.G002/G003	温州の母親
 CKU	九年母	Citrus nobilis	CKU	data/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/CKU/CKUhap2_r1.0.pmol.fasta.gz	Plant GARDEN t481549.G002/G003	温州の父親
 ```
@@ -246,7 +249,7 @@ CKU	九年母	Citrus nobilis	CKU	data/CKU/CKUhap1_r1.0.pmol.fasta.gz	data/CKU/CK
 - `cultivar_jp`: 表示用の和名
 - `species`: 学名
 - `pansn_prefix`: 後で PanSN 名の一部として使う短い ID
-- `hap1_path` / `hap2_path`: FASTA ファイルへの相対パス(リポジトリルートから)
+- `hap1_path` / `hap2_path`: FASTA ファイルへの相対パス(リポジトリルートから)。**この並びが PanSN の `#1` / `#2` を決めます**(温州は `#1` = CUNphKu、`#2` = CUNphKi。§2.5)
 - `source`: 出典
 - `pedigree`: 家族関係のメモ
 

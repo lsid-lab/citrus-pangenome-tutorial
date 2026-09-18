@@ -169,8 +169,8 @@ max_diff = 0.000% means input is fully preserved.
 Because the pedigree is known (CUN = CKI × CKU), we can check whether path similarities in the graph match the expected relationship.
 
 Expected:
-- CUN_hap1 (Kishu-derived) should be highly similar to one Kishu haplotype
-- CUN_hap2 (Kunenbo-derived) should be highly similar to one Kunenbo haplotype
+- `CUN#1` (CUNphKu, Kunenbo-derived) should be highly similar to one Kunenbo haplotype
+- `CUN#2` (CUNphKi, Kishu-derived) should be highly similar to one Kishu haplotype
 
 ### 6.4.2 Running odgi similarity
 
@@ -188,27 +188,27 @@ We focus on the `jaccard.similarity` column.
 ### 6.4.3 AVG-based vs MAX-based tests
 
 **Averages (AVG) can mislead**:
-- "CUN_hap1 vs Kishu (average)" averages against both CKI_hap1 and CKI_hap2
-- CUN_hap1 is a recombinant **mosaic** of CKI_hap1 and CKI_hap2 (§2.4), so which one is closer switches from segment to segment. Averaging the two flattens that structure, **shrinking the gap against CKU and burying the pedigree signal**
+- "`CUN#1` vs Kunenbo (average)" averages against both CKU_hap1 and CKU_hap2
+- `CUN#1` is a recombinant **mosaic** of CKU_hap1 and CKU_hap2 (§2.4), so which one is closer switches from segment to segment. Averaging the two flattens that structure, **shrinking the gap against CKI and burying the pedigree signal**
 
 **Maxima (MAX) are more meaningful**:
-- MAX(CUN_hap1 vs CKI_hap1, CUN_hap1 vs CKI_hap2) = the closer of the two CKI haplotypes
-- Even with recombination, every segment of CUN_hap1 descends from one of CKI's two chromosomes, so this MAX is necessarily higher than the MAX on the CKU side
+- MAX(`CUN#1` vs CKU_hap1, `CUN#1` vs CKU_hap2) = the closer of the two CKU haplotypes
+- Even with recombination, every segment of `CUN#1` descends from one of CKU's two chromosomes, so this MAX is necessarily higher than the MAX on the CKI side
 
-> **Note**: this tests that **the donor parent is CKI**, not that "the donor haplotype is CKI_hap1". A single whole-chromosome Jaccard cannot identify *which* parental haplotype a segment came from (§2.4); that needs the windowed analysis in §7.5.2.
+> **Note**: this tests that **the donor parent is CKU**, not that "the donor haplotype is CKU_hap1". A single whole-chromosome Jaccard cannot identify *which* parental haplotype a segment came from (§2.4); that needs the windowed analysis in §7.5.2.
 
 `pg03_qc_graph.sh` computes both:
 
 ```
-CUN_hap1 vs each parent haplotype:
-  CKI#1#chr09    Jaccard = 0.62  ← closer CKI hap
+CUN#1 (CUNphKu, Kunenbo-derived) vs each parent haplotype:
+  CKU#1#chr09    Jaccard = 0.62  ← closer CKU hap
+  CKU#2#chr09    Jaccard = 0.48
+  CKI#1#chr09    Jaccard = 0.42
   CKI#2#chr09    Jaccard = 0.35
-  CKU#1#chr09  Jaccard = 0.42
-  CKU#2#chr09  Jaccard = 0.48
 
 --- Pedigree tests ---
-  AVG-based: NO   (perturbed by haplotype leakage)
-  MAX-based: YES  (true pedigree is consistent)
+  AVG-based: NO   (perturbed by uneven path lengths)
+  MAX-based: YES  (CKU MAX 0.62 > CKI MAX 0.42)
 ```
 
 ### 6.4.4 Effect of CUN's longer paths
@@ -217,7 +217,7 @@ The observation from Chapter 4 that **CUN's two haplotypes are larger than the p
 
 Because Jaccard = intersection / union, **when one path is longer, union grows and Jaccard drops**.
 
-If CUN_hap1 is 45 Mb (1.5× expected 30 Mb) and other haps are 30 Mb:
+If `CUN#1` is 45 Mb (1.5x the expected 30 Mb) and other haps are 30 Mb:
 - intersection = 25 Mb (shared)
 - union = 45 + 30 - 25 = 50 Mb
 - Jaccard = 0.50
@@ -227,8 +227,8 @@ Numerically low, but only because one path is longer—not because biological si
 ### 6.4.5 Thresholds
 
 MAX-based:
-- CUN_hap1 has highest similarity to some CKI hap → OK
-- CUN_hap2 has highest similarity to some CKU hap → OK
+- `CUN#1` has highest similarity to some CKU hap → OK
+- `CUN#2` has highest similarity to some CKI hap → OK
 
 If both, pedigree is **consistent**. If either fails, suspect hap1/hap2 label swap or a trio phasing failure.
 

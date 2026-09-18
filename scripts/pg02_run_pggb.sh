@@ -14,7 +14,7 @@
 #   -p 95     : percent identity threshold
 #   -s 10000  : segment length (bp)
 #   -n 6      : number of haplotypes (3 cultivars x 2 hap)
-#   -V 'CUN#1:#' : VCF coordinate reference = CUN_hap1 (Kishu-derived)
+#   -V 'CUN#1:#' : VCF coordinate reference = CUN#1 (CUNphKu, Kunenbo-derived)
 #   -Y '#'    : PanSN separator
 #   -B 1G     : seqwish transclose batch size (see NOTE below)
 #

@@ -294,7 +294,7 @@ There is **no dataset specific to Rutaceae or Sapindales**, so the right choice 
 
 ```bash
 busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
-      -l eudicots_odb10 -c 16 -o busco/CUN_hap1
+      -l eudicots_odb10 -c 16 -o busco/CUN_hap2
 ```
 
 > The `odb10` suffix is the OrthoDB version the dataset was built from. Newer BUSCO releases also ship `odb12` datasets, so check `busco --list-datasets` to see what your installation has.

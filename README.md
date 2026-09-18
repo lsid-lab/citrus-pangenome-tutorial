@@ -53,7 +53,8 @@ citrus-pangenome-tutorial/
 │   ├── pg03_qc_graph.sh
 │   └── pg04_visualize.sh
 └── tables/
-    └── samplesheet.tsv
+    ├── samplesheet.tsv
+    └── assembly_provenance_v1_v2.tsv
 ```
 
 ### Prerequisites
@@ -151,7 +152,8 @@ citrus-pangenome-tutorial/
 │   ├── pg03_qc_graph.sh
 │   └── pg04_visualize.sh
 └── tables/
-    └── samplesheet.tsv
+    ├── samplesheet.tsv
+    └── assembly_provenance_v1_v2.tsv
 ```
 
 ### 前提となる計算環境

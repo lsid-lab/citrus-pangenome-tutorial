@@ -148,37 +148,39 @@ Compute from `similarity` output:
 
 |Comparison|Expected Jaccard|
 |---|---|
-|CUN_hap1 vs CKI_hap1 / CKI_hap2|**High against both** — CUN_hap1 is a mosaic of the two, so neither one stands out alone|
-|CUN_hap1 vs CKU_hap*|**Relatively low** — the father contributed nothing to CUN_hap1|
+|`CUN#1` vs CKU_hap1 / CKU_hap2|**High against both** — `CUN#1` is a mosaic of the two, so neither one stands out alone|
+|`CUN#1` vs CKI_hap*|**Relatively low** — the mother contributed nothing to `CUN#1`|
 
-Symmetrically, CUN_hap2 scores high against both CKU haplotypes and low against CKI.
+Symmetrically, `CUN#2` (Kishu-derived) scores high against both CKI haplotypes and low against CKU.
 
 > Absolute values are depressed simply because CUN's paths are longer (§4.4, §6.4.4), so judge by the **ranking between cultivars, not against a threshold**. Note also that a single whole-chromosome Jaccard cannot tell you *which* parental haplotype a segment descends from (§2.4) — that needs the windowed analysis in §7.5.2.
 
 ### 7.4.2 Specific pedigree pattern
 
-Trace which parent CUN_hap1 came from:
+Trace which parent `CUN#1` came from:
 
 ```bash
-# Jaccard of CUN_hap1 vs each CKI hap
-awk '$1 ~ /^CUN#1/ && $2 ~ /^CKI/' chr09_similarity.tsv
+# Jaccard of CUN#1 vs each parent haplotype
+awk '$1 ~ /^CUN#1/ && ($2 ~ /^CKU/ || $2 ~ /^CKI/)' chr09_similarity.tsv
 ```
 
 If the output shows:
 ```
-CUN#1#chr09  CKI#1#chr09  ...  Jaccard = 0.95
-CUN#1#chr09  CKI#2#chr09  ...  Jaccard = 0.55
+CUN#1#chr09  CKU#1#chr09  ...  Jaccard = 0.68
+CUN#1#chr09  CKU#2#chr09  ...  Jaccard = 0.61
+CUN#1#chr09  CKI#1#chr09  ...  Jaccard = 0.45
+CUN#1#chr09  CKI#2#chr09  ...  Jaccard = 0.43
 ```
 
-then, because the CKI side is consistently higher than the CKU side, we can conclude **CUN_hap1 is maternally (CKI) derived**.
+then, because the CKU side is consistently higher than the CKI side, we can conclude **`CUN#1` is paternally (CKU, Kunenbo) derived**.
 
-What we must **not** conclude is "CKI_hap1 scores higher, therefore CUN_hap1 came from CKI_hap1". CUN_hap1 is a mosaic of CKI_hap1 and CKI_hap2 (§2.4); the gap only means that CKI_hap1-derived segments happen to make up a somewhat larger share of that mosaic. Which segment came from which is only visible in the windowed analysis below.
+What we must **not** conclude is "CKU_hap1 scores higher, therefore `CUN#1` came from CKU_hap1". `CUN#1` is a mosaic of CKU_hap1 and CKU_hap2 (§2.4); the gap only means that CKU_hap1-derived segments happen to make up a somewhat larger share of that mosaic. Which segment came from which is only visible in the windowed analysis below.
 
 ### 7.4.3 Accounting for CUN's longer paths
 
 The Chapter 4 observation that CUN's haplotypes are larger than the parents' (§4.4) manifests as:
 
-- CUN_hap1 vs CKI Jaccard is somewhat lower than expected (e.g., 0.6 instead of 0.7)
+- `CUN#1` vs CKU Jaccard is somewhat lower than expected (e.g., 0.6 instead of 0.7)
 - Average-based interpretation may appear to break pedigree consistency
 
 **MAX-based** interpretation confirms pedigree, and the graph itself is correctly built. This was the key point of §6.4.4.
@@ -199,10 +201,10 @@ these may be pummelo-derived. Pummelo-derived regions are concentrated on specif
 
 ### 7.5.2 Recombination in F1
 
-As described in §2.4, CUN_hap1 is a **recombinant mosaic** of CKI_hap1 and CKI_hap2. Computing similarity in windows along a chromosome, we see:
+As described in §2.4, `CUN#1` is a **recombinant mosaic** of CKU_hap1 and CKU_hap2. Computing similarity in windows along a chromosome, we see:
 
-- Regions where CUN_hap1 is close to CKI_hap1
-- Regions where CUN_hap1 is close to CKI_hap2
+- Regions where `CUN#1` is close to CKU_hap1
+- Regions where `CUN#1` is close to CKU_hap2
 
 alternating, with the boundaries marking **crossover breakpoints** — the positions of the actual crossovers that occurred in the mother's meiosis, read off the graph.
 
@@ -237,15 +239,15 @@ A comparison exists in which graphs were rebuilt from both releases **with the s
 
 Bases in **chromosomes 1-9 only** — what actually goes into the graph.
 
-| Haplotype | r1.0 (Plant GARDEN) | r2.0 (MiGD2) | Δ |
-|---|---:|---:|---:|
-| CUNphKi (Satsuma, Kishu-derived) | 348.5 Mb | 298.7 Mb | −49.8 |
-| CUNphKu (Satsuma, Kunenbo-derived) | 357.6 Mb | 300.4 Mb | −57.2 |
-| CKIhap1 (Kishu 1) | 304.2 Mb | 295.6 Mb | −8.6 |
-| CKIhap2 (Kishu 2) | 310.3 Mb | 297.9 Mb | −12.4 |
-| CKUhap1 (Kunenbo 1) | 323.9 Mb | 295.1 Mb | −28.8 |
-| CKUhap2 (Kunenbo 2) | 303.4 Mb | 306.4 Mb | +3.0 |
-| **Spread across the six** | **303.4-357.6 (54.3 Mb)** | **295.1-306.4 (11.3 Mb)** | |
+| PanSN | Assembly | r1.0 (Plant GARDEN) | r2.0 (MiGD2) | Δ |
+|---|---|---:|---:|---:|
+| `CUN#1` | CUNphKu (Satsuma, Kunenbo-derived) | 357.6 Mb | 300.4 Mb | −57.2 |
+| `CUN#2` | CUNphKi (Satsuma, Kishu-derived) | 348.5 Mb | 298.7 Mb | −49.8 |
+| `CKI#1` | CKIhap1 (Kishu 1) | 304.2 Mb | 295.6 Mb | −8.6 |
+| `CKI#2` | CKIhap2 (Kishu 2) | 310.3 Mb | 297.9 Mb | −12.4 |
+| `CKU#1` | CKUhap1 (Kunenbo 1) | 323.9 Mb | 295.1 Mb | −28.8 |
+| `CKU#2` | CKUhap2 (Kunenbo 2) | 303.4 Mb | 306.4 Mb | +3.0 |
+| | **Spread across the six** | **303.4-357.6 (54.3 Mb)** | **295.1-306.4 (11.3 Mb)** | |
 
 **In r2.0 all six fall within 295-306 Mb, and Satsuma no longer stands apart.** The "25-55 Mb larger than the parents" recorded in §4.4 simply does not hold for r2.0.
 
@@ -265,7 +267,7 @@ Ancestry was called independently for each release and compared window by window
 - Across the 16 track × chromosome pairs where the parental phase is stable between releases: **3268 / 3300 windows agree (99.0%)**
 - Across all 18 pairs, including the two exceptions: **3539 / 3733 windows agree (94.8%)**
 
-The two exceptions are ch1 and ch9 of Satsuma's Kishu-derived haplotype, where **the Kishu parental assembly's own phase is reorganized between releases**. The disagreement is therefore a property of the parental assemblies, not of the Satsuma ancestry call — exactly the caveat flagged in §7.5.2, actually happening.
+The two exceptions are ch1 and ch9 of `CUN#2` (CUNphKi, Kishu-derived), where **the Kishu parental assembly's own phase is reorganized between releases**. The disagreement is therefore a property of the parental assemblies, not of the Satsuma ancestry call — exactly the caveat flagged in §7.5.2, actually happening.
 
 Calibrating against an independent yardstick — a RAD-Seq F1 population of 96 real offspring of Kunenbo × Kishu — **Satsuma falls inside the distribution of genuine offspring under both releases, at the same percentile (93.8).**
 
@@ -306,12 +308,17 @@ The pipeline reads assembly paths from `tables/samplesheet.tsv` and nothing else
 1. Fetch the six files from the MiGD2 download page:
 
    ```
-   CUNphKi_r2.0.genome.masked.fa.gz    CUNphKu_r2.0.genome.masked.fa.gz
+   CUNphKu_r2.0.genome.masked.fa.gz    CUNphKi_r2.0.genome.masked.fa.gz
    CKIhap1_r2.0.genome.masked.fa.gz    CKIhap2_r2.0.genome.masked.fa.gz
    CKUhap1_r2.0.genome.masked.fa.gz    CKUhap2_r2.0.genome.masked.fa.gz
    ```
 
-2. Point `hap1_path` / `hap2_path` in `tables/samplesheet.tsv` at them
+   **Distributor, dataset ID, filename, SHA-256, base counts and N50 for all twelve
+   assemblies (r1.0 and r2.0) are collected in
+   [`tables/assembly_provenance_v1_v2.tsv`](../../tables/assembly_provenance_v1_v2.tsv).**
+   Verify each download against its SHA-256.
+
+2. Point `hap1_path` / `hap2_path` in `tables/samplesheet.tsv` at them (**keep the order `hap1` = CUNphKu, `hap2` = CUNphKi**; see §2.5)
 3. Re-run from `qc01_stats.sh` in Chapter 4 through this chapter's analyses
 
 **No script changes are needed.** Two things about r2.0 are worth knowing:

@@ -99,34 +99,34 @@ The three cultivars form a small family:
                     ↓       ↓
               Satsuma (CUN)
               [Mandarin ~90%, Pummelo ~10%]
-       [hap1 = CKI-derived | hap2 = CKU-derived]
+  [CUN#1 = CKU-derived | CUN#2 = CKI-derived]
 ```
 
 ### A haplotype is not a copy of a parental chromosome
 
-It is true that each of CUN's two haplotypes **derives from one parent**: CUN_hap1 from the mother (CKI) and CUN_hap2 from the father (CKU). Trio phasing (§2.5) guarantees this assignment.
+It is true that each of CUN's two haplotypes **derives from one parent**: **CUN#1 from the father (CKU, Kunenbo) and CUN#2 from the mother (CKI, Kishu)**. Trio phasing (§2.5) guarantees this assignment.
 
 But **neither haplotype is one of the parent's two chromosomes passed down intact.** During the meiosis that produces a gamete, **crossovers** occur between the parent's two homologous chromosomes, and it is the resulting **recombinant chromosome** that is transmitted. So:
 
-- **CUN_hap1** = a **mosaic** of CKI_hap1 and CKI_hap2 (recombined in the mother's meiosis)
-- **CUN_hap2** = a **mosaic** of CKU_hap1 and CKU_hap2 (recombined in the father's meiosis)
+- **CUN#1** = a **mosaic** of CKU_hap1 and CKU_hap2 (recombined in the father's meiosis)
+- **CUN#2** = a **mosaic** of CKI_hap1 and CKI_hap2 (recombined in the mother's meiosis)
 
 Along a single chromosome, the ancestry switches partway:
 
 ```
-CKI_hap1  ■■■■■■■■■■■■■■■■■■■■■■■■
-CKI_hap2  □□□□□□□□□□□□□□□□□□□□□□□□
-                ↓ meiosis in the mother (crossover)
-CUN_hap1  ■■■■■■■■■□□□□□□□□□□□■■■■
+CKU_hap1  ■■■■■■■■■■■■■■■■■■■■■■■■
+CKU_hap2  □□□□□□□□□□□□□□□□□□□□□□□□
+                ↓ meiosis in the father (crossover)
+CUN#1     ■■■■■■■■■□□□□□□□□□□□■■■■
                    ↑           ↑
                breakpoint   breakpoint
 ```
 
-Every chromosome undergoes **at least one crossover, typically one to three**. CUN_hap1 therefore alternates between stretches resembling CKI_hap1 and stretches resembling CKI_hap2, and **a one-to-one correspondence such as "CUN_hap1 ≈ CKI_hap1" simply does not hold**. Averaged over the genome, CUN_hap1 is roughly equally similar to both CKI haplotypes — though the per-chromosome ratio varies widely with crossover position.
+Every chromosome undergoes **at least one crossover, typically one to three**. CUN#1 therefore alternates between stretches resembling CKU_hap1 and stretches resembling CKU_hap2, and **a one-to-one correspondence such as "CUN#1 ≈ CKU_hap1" simply does not hold**. Averaged over the genome, CUN#1 is roughly equally similar to both CKU haplotypes — though the per-chromosome ratio varies widely with crossover position.
 
 The important distinction: what is ambiguous is **which of the parent's haplotypes**, not **which parent**. Every recombined segment still comes from one of the mother's two chromosomes, so the parental assignment itself never wavers.
 
-This is not a theoretical caveat. **The switching is directly observable in the path-similarity analysis of Chapter 7** (§7.5.2): plotting whether CUN_hap1 is closer to CKI_hap1 or CKI_hap2 along a chromosome reveals the swap at each breakpoint. Seeing it is in fact **evidence that the graph is consistent with the known pedigree**.
+This is not a theoretical caveat. **The switching is directly observable in the path-similarity analysis of Chapter 7** (§7.5.2): plotting whether CUN#1 is closer to CKU_hap1 or CKU_hap2 along a chromosome reveals the swap at each breakpoint. Seeing it is in fact **evidence that the graph is consistent with the known pedigree**.
 
 ---
 
@@ -140,8 +140,8 @@ But if **both parents are also sequenced**, the offspring's reads can be sorted 
 Parent A (Kishu) k-mers:  ACGT, GTCA, ...   (Kishu-specific)
 Parent B (Kunenbo) k-mers: CCAA, TTAG, ...  (Kunenbo-specific)
 
-Read R1 from child (Satsuma): contains parent-A k-mer → hap1 (Kishu-derived)
-Read R2 from child (Satsuma): contains parent-B k-mer → hap2 (Kunenbo-derived)
+Read R1 from child (Satsuma): contains parent-A k-mer → Kishu-derived haplotype (CUNphKi)
+Read R2 from child (Satsuma): contains parent-B k-mer → Kunenbo-derived haplotype (CUNphKu)
 ```
 
 This is **trio phasing** (Cheng et al., 2021).
@@ -150,12 +150,14 @@ This is **trio phasing** (Cheng et al., 2021).
 
 | Cultivar | Assembly ID | Content |
 |---|---|---|
-| Satsuma CUN | CUNphKi_r1.0 | Satsuma hap1 (**Ki**shu-derived) |
-| Satsuma CUN | CUNphKu_r1.0 | Satsuma hap2 (**Ku**nenbo-derived) |
+| Satsuma CUN | CUNphKu_r1.0 | Satsuma's **Kunenbo-derived** haplotype (`Ku`) |
+| Satsuma CUN | CUNphKi_r1.0 | Satsuma's **Kishu-derived** haplotype (`Ki`) |
 | Kishu CKI | CKIhap1_r1.0 | Kishu hap1 |
 | Kishu CKI | CKIhap2_r1.0 | Kishu hap2 |
 | Kunenbo CKU | CKUhap1_r1.0 | Kunenbo hap1 |
 | Kunenbo CKU | CKUhap2_r1.0 | Kunenbo hap2 |
+
+> **On haplotype numbering**: the `#1` / `#2` in PanSN are **arbitrary labels**; nothing dictates which is which. This tutorial uses **`CUN#1` = CUNphKu (paternal, Kunenbo-derived) and `CUN#2` = CUNphKi (maternal, Kishu-derived)**. The order of `hap1_path` / `hap2_path` in `tables/samplesheet.tsv` is what fixes this, and it propagates all the way to the VCF coordinate reference (`-V CUN#1`, §5.2) and to the direction of the pedigree tests in Chapters 6 and 7. **When comparing against someone else's analysis, check first that the numbering matches.**
 
 **Naming convention**:
 - **C** = *Citrus*
@@ -198,11 +200,11 @@ Isobe et al. (2023) released all assemblies via **Plant GARDEN**. Anyone can rep
 
 Through the graph on these three cultivars, we will **directly observe or confirm**:
 
-**Discovery 1**: CUN_hap1 is clearly closer to both CKI haplotypes than to CKU
-- But it does not track either CKI_hap1 or CKI_hap2 exclusively — the ancestry **switches** along the chromosome (the recombination described in §2.4)
+**Discovery 1**: CUN#1 (Kunenbo-derived) is clearly closer to both CKU haplotypes than to CKI
+- But it does not track either CKU_hap1 or CKU_hap2 exclusively — the ancestry **switches** along the chromosome (the recombination described in §2.4)
 
-**Discovery 2**: CUN_hap2 is clearly closer to both CKU haplotypes than to CKI
-- Likewise visible as a mosaic of CKU_hap1 and CKU_hap2
+**Discovery 2**: CUN#2 (Kishu-derived) is clearly closer to both CKI haplotypes than to CKU
+- Likewise visible as a mosaic of CKI_hap1 and CKI_hap2
 
 **Discovery 3**: SVs exist between Satsuma's two haplotypes
 - Thousands of SVs detected via vg deconstruct

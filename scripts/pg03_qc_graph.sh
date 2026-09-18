@@ -6,7 +6,8 @@
 #   levels:
 #     Level 1: Structural check (odgi stats + .params.yml verification)
 #     Level 2: Path preservation (input path lengths vs graph path lengths)
-#     Level 3: Pedigree consistency (expected relationship: CUN = F1(CKI, CKU))
+#     Level 3: Pedigree consistency (expected relationship: CUN = F1(CKI mother, CKU father);
+#              CUN#1 = CUNphKu is the paternal hap, CUN#2 = CUNphKi the maternal one)
 #     Level 4: SV signal (vg deconstruct output)
 #
 # Verdict rules:
@@ -272,10 +273,10 @@ PYEOF
     
     echo ""
     echo "    Expected pedigree (CUN = CKI x CKU F1):"
-    echo "      CUN_hap1 (CUNphKi, maternal) should score higher against CKI than against CKU"
-    echo "      CUN_hap2 (CUNphKu, paternal) should score higher against CKU than against CKI"
-    echo "      (CUN_hap1 is a recombinant mosaic of CKI_hap1/CKI_hap2, so it need not"
-    echo "       match a single parental haplotype - see docs section 2.4)"
+    echo "      CUN#1 (CUNphKu, paternal) should score higher against CKU than against CKI"
+    echo "      CUN#2 (CUNphKi, maternal) should score higher against CKI than against CKU"
+    echo "      (each is a recombinant mosaic of that parent's two haplotypes, so it need"
+    echo "       not match a single parental haplotype - see docs section 2.4)"
 
     JACCARD_COL=$(echo "$HEADER" | tr '\t' '\n' | grep -n -i "jaccard" | head -1 | cut -d: -f1)
     [[ -z "$JACCARD_COL" ]] && JACCARD_COL=6
@@ -284,7 +285,7 @@ PYEOF
     echo ""
     echo "    --- Individual pair similarities (Jaccard) ---"
     echo ""
-    echo "    CUN_hap1 (CUN#1) vs each parent haplotype:"
+    echo "    CUN#1 (CUNphKu, Kunenbo-derived) vs each parent haplotype:"
     awk -F'\t' -v c=$JACCARD_COL 'NR>1 && $1 ~ /^CUN#1/ && ($2 ~ /^CKI/ || $2 ~ /^CKU/) {
       printf "      %-30s  Jaccard = %.4f\n", $2, $c
     } NR>1 && $2 ~ /^CUN#1/ && ($1 ~ /^CKI/ || $1 ~ /^CKU/) {
@@ -292,7 +293,7 @@ PYEOF
     }' "$QC_OUT/${CHR}_similarity.tsv" | sort -u
 
     echo ""
-    echo "    CUN_hap2 (CUN#2) vs each parent haplotype:"
+    echo "    CUN#2 (CUNphKi, Kishu-derived) vs each parent haplotype:"
     awk -F'\t' -v c=$JACCARD_COL 'NR>1 && $1 ~ /^CUN#2/ && ($2 ~ /^CKI/ || $2 ~ /^CKU/) {
       printf "      %-30s  Jaccard = %.4f\n", $2, $c
     } NR>1 && $2 ~ /^CUN#2/ && ($1 ~ /^CKI/ || $1 ~ /^CKU/) {
@@ -314,28 +315,32 @@ PYEOF
     echo ""
     echo "    --- Aggregate values ---"
     printf "    %-15s  %-15s  %-15s\n" " " "vs Kishu" "vs Kunenbo"
-    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "CUN_hap1" $CUN1_CKI_AVG $CUN1_CKI_MAX $CUN1_CKU_AVG $CUN1_CKU_MAX
-    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "CUN_hap2" $CUN2_CKI_AVG $CUN2_CKI_MAX $CUN2_CKU_AVG $CUN2_CKU_MAX
+    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "CUN#1 (CKU-der)" $CUN1_CKI_AVG $CUN1_CKI_MAX $CUN1_CKU_AVG $CUN1_CKU_MAX
+    printf "    %-15s  AVG=%.3f MAX=%.3f  AVG=%.3f MAX=%.3f\n" "CUN#2 (CKI-der)" $CUN2_CKI_AVG $CUN2_CKI_MAX $CUN2_CKU_AVG $CUN2_CKU_MAX
 
     # AVG-based and MAX-based pedigree tests
     AVG_TEST=$(python3 <<PYEOF
 try:
     a=float("$CUN1_CKI_AVG"); b=float("$CUN1_CKU_AVG"); c=float("$CUN2_CKI_AVG"); d=float("$CUN2_CKU_AVG")
-    print("YES" if ((a > b) and (d > c)) else "NO")
+    # CUN#1 = CUNphKu (Kunenbo-derived) -> expect CKU > CKI
+    # CUN#2 = CUNphKi (Kishu-derived)   -> expect CKI > CKU
+    print("YES" if ((b > a) and (c > d)) else "NO")
 except: print("NA")
 PYEOF
 )
     MAX_TEST=$(python3 <<PYEOF
 try:
     a=float("$CUN1_CKI_MAX"); b=float("$CUN1_CKU_MAX"); c=float("$CUN2_CKI_MAX"); d=float("$CUN2_CKU_MAX")
-    print("YES" if ((a > b) and (d > c)) else "NO")
+    # CUN#1 = CUNphKu (Kunenbo-derived) -> expect CKU > CKI
+    # CUN#2 = CUNphKi (Kishu-derived)   -> expect CKI > CKU
+    print("YES" if ((b > a) and (c > d)) else "NO")
 except: print("NA")
 PYEOF
 )
 
     echo ""
     echo "    --- Pedigree tests ---"
-    echo "      AVG-based: $AVG_TEST  (CUN_hap1 closer to Kishu AND CUN_hap2 closer to Kunenbo?)"
+    echo "      AVG-based: $AVG_TEST  (CUN#1 closer to Kunenbo AND CUN#2 closer to Kishu?)"
     echo "      MAX-based: $MAX_TEST  (true pedigree indicator: closest hap matches pedigree?)"
     
     if [[ "$MAX_TEST" == "YES" ]]; then
@@ -344,7 +349,7 @@ PYEOF
         L3_OK="WARN: MAX-based consistent, AVG-based inconsistent (likely due to haplotype leakage)"
       fi
     elif [[ "$MAX_TEST" == "NO" ]]; then
-      L3_OK="WARN: MAX-based inconsistent (haplotype leakage or hap1/hap2 label swap?)"
+      L3_OK="WARN: MAX-based inconsistent (path-length effects, or CUN#1/CUN#2 assigned the wrong way round?)"
     else
       L3_OK="WARN: could not evaluate"
     fi

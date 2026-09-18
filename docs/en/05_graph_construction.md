@@ -84,15 +84,15 @@ The baseline for statements like "sample A differs from B by X". Affects the fra
 Because we use PGGB (which is reference-free):
 
 - **(1) Structural backbone is not needed**
-- **(2) Coordinate anchor**: chosen as **CUN_hap1 (CUNphKi)** (reasoning below)
+- **(2) Coordinate anchor**: chosen as **`CUN#1` (CUNphKu, Kunenbo-derived)** (reasoning below)
 - **(3) Comparative baseline**: depends on context
 
 **When we say "we chose a reference," we are actually choosing (2) coordinate anchor**, not the graph's backbone. Keep this distinction in mind.
 
-### Why CUN_hap1 as coordinate anchor?
+### Why `CUN#1` as coordinate anchor?
 
 1. **CUN is the pedigree center**: F1 of CKI × CKU, connecting the two parents in the graph
-2. **hap1 is identified as Kishu-derived**: unambiguous interpretation via trio phasing
+2. **Its parent of origin is known**: trio phasing identifies `CUN#1` as Kunenbo (CKU)-derived, so interpretation is unambiguous
 3. **Newest and highest-quality of the Isobe 2023 assemblies**
 
 ---

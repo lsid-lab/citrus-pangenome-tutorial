@@ -255,7 +255,7 @@ compleasm download eudicots_odb10
 ```bash
 # compleasm (faster than BUSCO)
 compleasm run -a data/CUN/CUNphKi_r1.0.pmol.fasta.gz \
-              -o busco/CUN_hap1 \
+              -o busco/CUN_hap2 \
               -l eudicots_odb10 \
               -t 16
 ```
@@ -288,7 +288,7 @@ meryl --version
 meryl count k=21 output hifi.meryl hifi_reads.fastq.gz
 
 # 2) Compare against the assemblies (passing both haps also compares them to each other)
-merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz CUN
+merqury.sh hifi.meryl CUNphKu_r1.0.fasta.gz CUNphKi_r1.0.fasta.gz CUN
 ```
 
 With trio reads (both parents plus the offspring) you can additionally build `hapmers` and obtain the **false duplication rate** and **hap-mer blob plot** — the proper tools for deciding whether haplotype leakage occurred.
