@@ -72,28 +72,28 @@ echo "[Kishu mandarin (KSH)]"
 # The subdirectory and filename format may change between releases.
 # Placeholder URLs shown here - verify actual URLs before running.
 
-# download_if_absent \
-#   "$BASE/Citrus_kinokuni/t408488.G001/CKIhap1_r1.0.pmol.fasta.gz" \
-#   "$OUT/kishu/CKIhap1_r1.0.pmol.fasta.gz" \
-#   "hap1: CKIhap1_r1.0"
-# download_if_absent \
-#   "$BASE/Citrus_kinokuni/t408488.G002/CKIhap2_r1.0.pmol.fasta.gz" \
-#   "$OUT/kishu/CKIhap2_r1.0.pmol.fasta.gz" \
-#   "hap2: CKIhap2_r1.0"
-echo "  Please verify actual URLs at https://plantgarden.jp/ja/download/Citrus_kinokuni/"
+download_if_absent \
+  "$BASE/Citrus_kinokuni/t408488.G002/CKIhap1_r1.0.pmol.fasta.gz" \
+  "$OUT/kishu/CKIhap1_r1.0.pmol.fasta.gz" \
+  "hap1: CKIhap1_r1.0"
+download_if_absent \
+  "$BASE/Citrus_kinokuni/t408488.G003/CKIhap2_r1.0.pmol.fasta.gz" \
+  "$OUT/kishu/CKIhap2_r1.0.pmol.fasta.gz" \
+  "hap2: CKIhap2_r1.0"
+#echo "  Please verify actual URLs at https://plantgarden.jp/ja/download/Citrus_kinokuni/"
 
 # ---------- Kunenbo (Citrus nobilis) ----------
 echo ""
 echo "[Kunenbo (KNN)]"
-# download_if_absent \
-#   "$BASE/Citrus_nobilis/<subdir>/CKUhap1_r1.0.pmol.fasta.gz" \
-#   "$OUT/kunenbo/CKUhap1_r1.0.pmol.fasta.gz" \
-#   "hap1: CKUhap1_r1.0"
-# download_if_absent \
-#   "$BASE/Citrus_nobilis/<subdir>/CKUhap2_r1.0.pmol.fasta.gz" \
-#   "$OUT/kunenbo/CKUhap2_r1.0.pmol.fasta.gz" \
-#   "hap2: CKUhap2_r1.0"
-echo "  Please verify actual URLs at https://plantgarden.jp/ja/download/Citrus_nobilis/"
+download_if_absent \
+  "$BASE/Citrus_nobilis/t481549.G002/CKUhap1_r1.0.pmol.fasta.gz" \
+  "$OUT/kunenbo/CKUhap1_r1.0.pmol.fasta.gz" \
+  "hap1: CKUhap1_r1.0"
+download_if_absent \
+  "$BASE/Citrus_nobilis/t481549.G003/CKUhap2_r1.0.pmol.fasta.gz" \
+  "$OUT/kunenbo/CKUhap2_r1.0.pmol.fasta.gz" \
+  "hap2: CKUhap2_r1.0"
+#echo "  Please verify actual URLs at https://plantgarden.jp/ja/download/Citrus_nobilis/"
 
 # ---------- Verification ----------
 echo ""
