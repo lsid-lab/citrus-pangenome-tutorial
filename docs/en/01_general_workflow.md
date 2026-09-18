@@ -263,7 +263,7 @@ Results are reported as percentages in four categories:
 |**F** (Fragmented)|found only partially|indicator of fragmentation / assembly error|
 |**M** (Missing)|not found at all|indicator of missing sequence|
 
-**C (Complete) = S + D**, summarized in one line such as `C:97.2%[S:94.1%,D:3.1%],F:1.0%,M:1.8%`. For haplotype-resolved assemblies like the ones in this tutorial, run BUSCO **separately per haplotype**. **A high D on one haplotype is a signature of haplotype leakage**, which connects directly to the discussion in §4.6.
+**C (Complete) = S + D**, summarized in one line such as `C:97.2%[S:94.1%,D:3.1%],F:1.0%,M:1.8%`. For haplotype-resolved assemblies like the ones in this tutorial, run BUSCO **separately per haplotype**. **A high D on just one haplotype** suggests that haplotype carries duplicated copies of the same sequence (haplotype leakage).
 
 **Choosing the lineage dataset is the part that matters most**
 
@@ -301,7 +301,7 @@ busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
 >
 > **BUSCO scores from different datasets or different BUSCO versions are not comparable.** Whenever you compare your numbers against a paper or another assembly, make sure the lineage dataset name and the BUSCO version match.
 
-The actual commands (using `compleasm`, a faster BUSCO reimplementation) are covered in §4.7.
+The actual commands (using `compleasm`, a faster BUSCO reimplementation) are covered in §4.6.
 
 ### Step 3 (Input preparation)
 - **Rename** all haploid files to PanSN format

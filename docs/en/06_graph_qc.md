@@ -213,7 +213,7 @@ CUN_hap1 vs each parent haplotype:
 
 ### 6.4.4 Effect of haplotype leakage
 
-The **haplotype leakage** seen in Chapter 4 (Satsuma haps larger than parental lines) affects Jaccard similarity.
+The observation from Chapter 4 that **CUN's two haplotypes are larger than the parental lines** (§4.4) affects Jaccard similarity.
 
 Because Jaccard = intersection / union, **when one path is longer, union grows and Jaccard drops**.
 

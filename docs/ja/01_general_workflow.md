@@ -264,7 +264,7 @@ Graph の品質を測る**最も重要な指標**:
 |**F** (Fragmented)|部分的にしか見つからない|断片化・アセンブリエラーの指標|
 |**M** (Missing)|全く見つからない|欠損の指標|
 
-**C (Complete) = S + D** で、`C:97.2%[S:94.1%,D:3.1%],F:1.0%,M:1.8%` のような 1 行に要約されます。本教材で扱うような haplotype-resolved アセンブリでは、**hap ごとに別々に** BUSCO を回します。片方の hap に **D が高く出たら haplotype leakage のサイン**で、これは §4.6 で扱う話に直結します。
+**C (Complete) = S + D** で、`C:97.2%[S:94.1%,D:3.1%],F:1.0%,M:1.8%` のような 1 行に要約されます。本教材で扱うような haplotype-resolved アセンブリでは、**hap ごとに別々に** BUSCO を回します。片方の hap にだけ **D が高く出たら、その hap に同じ配列が重複して入っている(haplotype leakage)可能性を疑います**。
 
 **一番大事なのは lineage dataset の選び方**
 
@@ -302,7 +302,7 @@ busco -i data/CUN/CUNphKi_r1.0.pmol.fasta -m genome \
 >
 > **データセットもバージョンも違えば、BUSCO の数字は比較できません。** 論文や他のアセンブリと BUSCO 値を突き合わせるときは、必ず lineage dataset 名と BUSCO のバージョンを揃えてください。
 
-実際のコマンド(BUSCO より高速な `compleasm` を使う版)は §4.7 で扱います。
+実際のコマンド(BUSCO より高速な `compleasm` を使う版)は §4.6 で扱います。
 
 ### ステップ3 (入力整形)
 - 全 haploid ファイルの**命名を統一** → PanSN 形式に変換

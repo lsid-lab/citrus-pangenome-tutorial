@@ -213,7 +213,7 @@ CUN_hap1 の各parent hap との類似度:
 
 ### 6.4.4 Haplotype leakage の影響
 
-第4章で見た **haplotype leakage**(CUN の 2 hap のサイズが親系統より大きい)が、Jaccard 類似度に影響します。
+第4章で見た **CUN の 2 hap が親系統より大きい**という観察(§4.4)が、Jaccard 類似度に影響します。
 
 Jaccard = intersection / union の性質上、**片方の path が長いほど union が大きくなり、Jaccard が下がる**。
 

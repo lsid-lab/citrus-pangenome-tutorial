@@ -152,7 +152,7 @@ Compute from `similarity` output:
 
 Symmetrically, CUN_hap2 scores high against both CKU haplotypes and low against CKI.
 
-> Absolute values are depressed by haplotype leakage (§4.6), so judge by the **ranking between cultivars, not against a threshold**. Note also that a single whole-chromosome Jaccard cannot tell you *which* parental haplotype a segment descends from (§2.4) — that needs the windowed analysis in §7.5.2.
+> Absolute values are depressed simply because CUN's paths are longer (§4.4, §6.4.4), so judge by the **ranking between cultivars, not against a threshold**. Note also that a single whole-chromosome Jaccard cannot tell you *which* parental haplotype a segment descends from (§2.4) — that needs the windowed analysis in §7.5.2.
 
 ### 7.4.2 Specific pedigree pattern
 
@@ -175,7 +175,7 @@ What we must **not** conclude is "CKI_hap1 scores higher, therefore CUN_hap1 cam
 
 ### 7.4.3 Accounting for haplotype leakage
 
-The haplotype leakage discovered in Chapter 4 (Satsuma haps larger than parental) manifests as:
+The Chapter 4 observation that CUN's haplotypes are larger than the parents' (§4.4) manifests as:
 
 - CUN_hap1 vs CKI Jaccard is somewhat lower than expected (e.g., 0.6 instead of 0.7)
 - Average-based interpretation may appear to break pedigree consistency

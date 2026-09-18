@@ -6,7 +6,6 @@
 - Learn basic usage of `seqkit stats`
 - **Judge QC results by comparison with species expectations rather than fixed thresholds**
 - Know the expected values for citrus, and how to translate them to other species
-- **Learn the discipline that keeps "larger than the rest" from becoming "anomalous"**
 
 ---
 
@@ -123,7 +122,7 @@ Example results:
 
 | sample | hap | num_seqs | sum_len_Mb | N50_Mb | GC% | verdict | note |
 |---|---|---|---|---|---|---|---|
-| CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | PASS | 25-55 Mb larger than the parents → §4.6 |
+| CUN | 1 | 9 | 348.5 | 34.5 | 35.9 | PASS | 25-55 Mb larger than the parents |
 | CUN | 2 | 9 | 358.0 | 44.2 | 35.0 | PASS | same |
 | CKI | 1 | 9 | 304.2 | 33.5 | 36.0 | PASS | |
 | CKI | 2 | 9 | 310.3 | 32.5 | 36.0 | PASS | |
@@ -132,7 +131,9 @@ Example results:
 
 **All six haploids pass.** Every one of them falls inside the citrus expectations `qc01_stats.sh` uses (290-370 Mb, 9 chromosomes, GC 34-38%).
 
-That CUN's two haplotypes are larger than the others is **recorded as an observation**, but whether it deserves to be called an anomaly is a separate question. §4.6 takes it up.
+CUN's two haplotypes being larger than the parents is **within the published size range for Satsuma** (Shimizu et al. 2017: 359.7 Mb; Kawahara et al. 2020: 346 Mb). The two parents are different species, and a 10-20% genome size difference between close relatives is unremarkable.
+
+It does matter downstream, though: **the longer a path, the lower its Jaccard similarity**, so this difference shows up in the Chapter 6 interpretation (§6.4.4). Keep the observation in mind.
 
 ---
 
@@ -188,7 +189,7 @@ There is no universal "normal range" for `sum_len`. Compare against **a genome s
 |**Smaller**|Missing sequence, or collapsed repeats|
 |**Larger**|Duplicated haplotype (leakage), contamination — or an outdated estimate|
 
-**Note that neither direction is evidence of a problem on its own.** Genome size routinely differs by 10-20% even between close relatives, and the estimates themselves have spread. §4.6 works through exactly this trap with real numbers.
+**Note that neither direction is evidence of a problem on its own.** Genome size routinely differs by 10-20% even between close relatives, and the estimates themselves have spread. CUN in §4.4 is exactly that case: **larger than the two parents, yet inside the published range for Satsuma.**
 
 ### Point 3: hap1 vs hap2 — this one is species-independent
 
@@ -229,85 +230,7 @@ The contiguity thresholds are derived automatically from `EXPECTED_NUM_CHR`.
 
 ---
 
-## 4.6 Before calling a number "anomalous": CUN's larger haplotypes
-
-In the §4.4 table, **CUN's two haplotypes are 25-55 Mb larger than the two parents**:
-
-- CUN hap1: 348.5 Mb / CUN hap2: 358.0 Mb
-- The four CKI and CKU haps: 303.4 - 323.9 Mb
-
-How should you read that? **This is the part of the chapter most worth practising.**
-
-### Step 1: It is inside the expected range to begin with
-
-The citrus range `qc01_stats.sh` uses is **290-370 Mb**, so both 348.5 and 358.0 are **inside** it. All six haploids come out as `PASS`. "Larger than the others" and "outside the expected range" are different statements.
-
-### Step 2: Compare against known values, not against the rest of your dataset
-
-Here are the published genome sizes for Satsuma mandarin:
-
-| Source | Reported size |
-|---|---:|
-| Shimizu et al. (2017) Satsuma draft (*Front Genet*) | 359.7 Mb |
-| Kawahara et al. (2020) Satsuma (MiGD) | 346 Mb |
-| **This tutorial's CUN hap1 / hap2** | **348.5 / 358.0 Mb** |
-
-**They line up precisely.** Satsuma's assembly size is entirely ordinary *for Satsuma*.
-
-The more natural reading is not "Satsuma is large" but "**the two parents — which are different species — have relatively small genomes**". A 10-20% genome size difference between close relatives is unremarkable, in citrus and elsewhere.
-
-> **Lesson**: being larger than the other samples in your dataset is not, by itself, evidence of anything. **The thing to compare against is what is already known about the species, not the other samples you happen to have.** That is precisely what Point 2 of §4.5 is about.
-
-### Step 3: An independent angle — k-mer redundancy
-
-Separately from total length, one can ask **how much sequence is duplicated within an assembly**. A k-mer tally performed while developing this tutorial showed the following:
-
-<!-- TODO: confirm and state who ran this analysis and under what conditions (k value, tool and version, whether unplaced sequence was included). -->
-
-| Assembly | Unique k-mer % | 2× % | 3+× % | Total bp |
-|---|---:|---:|---:|---:|
-| CKUhap2 (CKU hap2) | 90.17% | 5.46% | 4.37% | 303.4 Mb |
-| CKIhap1 (CKI hap1) | 89.95% | 5.61% | 4.44% | 304.2 Mb |
-| CKUhap1 (CKU hap1) | 89.42% | 5.77% | 4.81% | 323.9 Mb |
-| CKIhap2 (CKI hap2) | 89.28% | 6.06% | 4.66% | 310.3 Mb |
-| **CUNphKu (CUN hap2)** | **82.64%** | **11.89%** | 5.47% | 358.0 Mb |
-| **CUNphKi (CUN hap1)** | **79.64%** | **14.65%** | 5.71% | 348.5 Mb |
-
-> ⚠️ **How to treat this table**: it is an **unpublished internal tally**, not peer-reviewed, and its analysis conditions (k value, tool and version, scope) are not established. Read it as **an illustration of a kind of check**, and **not as an assessment of the quality of the Isobe et al. (2023) assemblies.**
-
-CUN's two haplotypes carry roughly twice the fraction of 2×-occurring k-mers that the parents do. At least three explanations fit:
-
-1. **Satsuma simply has more repetitive sequence** — a genuine biological difference
-2. **Haplotype leakage** — trio phasing failed to fully separate the haplotypes, leaving the same sequence in both
-3. **Differences in how the tally was run** — the k value, low-complexity masking, whether unplaced sequence was included
-
-### Step 4: Know how the question would be settled
-
-What matters is that **there is a way to distinguish those three.**
-
-Merqury (Rhie et al., 2020) is not, in fact, a tool for counting k-mer redundancy *within* an assembly: it compares an assembly against **a k-mer database built from the raw reads**. Given trio reads, it yields direct measures:
-
-- **QV** — base-level accuracy
-- **completeness** — fraction of read k-mers present in the assembly
-- **false duplication rate** — **the direct measure of haplotype leakage**
-- **hap-mer blob plot** — which parent's k-mers ended up in which haplotype
-
-**If you want to claim haplotype leakage, these are what you should be looking at.** The reads are available from DDBJ DRA (PRJDB15866), but this tutorial does not handle raw reads, so we stop here — and therefore **this tutorial does not adjudicate between the three hypotheses above.**
-
-### Why this belongs in the tutorial
-
-Because **the hard part of QC is not producing numbers, it is deciding whether a number deserves to be called anomalous.** The habit to build here:
-
-1. **Observe** — CUN's two haps are larger than the rest
-2. **Don't jump** — "larger than the others" ≠ "anomalous"; against published values it is exactly as expected
-3. **Add an independent angle** — k-mer redundancy does differ
-4. **Hold several hypotheses** — biology / leakage / analysis conditions
-5. **Know the deciding experiment** — Merqury with trio reads separates them
-6. **Withhold judgment until it is decided** — while still tracking the downstream effect
-
-Step 6 is the practically important one. In Chapter 6 you will watch CUN's larger haplotypes **push its Jaccard similarities down** (§6.4.4). Whether the cause is (1) or (2), **the effect on how you read the graph is the same** — which is why the observation is worth carrying forward.
-
-## 4.7 Additional QC tools (optional)
+## 4.6 Additional QC tools (optional)
 
 ### BUSCO / compleasm (completeness)
 
@@ -370,7 +293,7 @@ merqury.sh hifi.meryl CUNphKi_r1.0.fasta.gz CUNphKu_r1.0.fasta.gz CUN
 
 With trio reads (both parents plus the offspring) you can additionally build `hapmers` and obtain the **false duplication rate** and **hap-mer blob plot** — the proper tools for deciding whether haplotype leakage occurred.
 
-**We do not run Merqury in this tutorial**, since we do not handle raw reads. Note that the k-mer tally quoted in §4.6 is *not* this canonical use of Merqury (see the caveat there). The reads are available from DDBJ DRA BioProject `PRJDB15866` (§3.1) if you want to try it yourself.
+**We do not run Merqury in this tutorial**, since we do not handle raw reads. The reads are available from DDBJ DRA BioProject `PRJDB15866` (§3.1) if you want to try it yourself.
 
 ---
 
@@ -380,9 +303,8 @@ With trio reads (both parents plus the offspring) you can additionally build `ha
 - **Judge against what is expected for your species, not against fixed thresholds.** Citrus's 300-360 Mb / 9 chromosomes / GC 34-38% are citrus numbers
 - Never judge on `num_seqs` alone — read it with `N50` (the same Satsuma exists both as a 20,876-scaffold assembly and as a 9-pseudomolecule one)
 - Comparing hap1 against hap2 is one of the few **species-independent** checks
-- **CUN's two haps are larger than the rest, but well within the published size range for Satsuma (346-360 Mb).** "Larger than the others" is not "anomalous"
-- k-mer redundancy does differ, but the cause (biology / haplotype leakage / analysis conditions) **cannot be settled from this tutorial's data**; that needs Merqury with trio reads
-- Whatever the cause, it **does affect the Jaccard similarities in Chapter 6**, so carry the observation forward
+- **CUN's two haps are larger than the rest, but well within the published size range for Satsuma (346-360 Mb).** "Larger than the other samples I happen to have" is not "anomalous"
+- That size difference nevertheless **affects the Jaccard similarities in Chapter 6** (§6.4.4), so carry the observation forward
 
 The next chapter starts building the **pangenome graph**.
 
